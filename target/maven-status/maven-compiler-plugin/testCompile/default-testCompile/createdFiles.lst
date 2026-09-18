@@ -1,0 +1,5 @@
+com\bancopreguntas\validacion\ValidadorEstructuralPreguntaTest.class
+com\bancopreguntas\repository\PreguntaRepositoryEnMemoriaTest.class
+com\bancopreguntas\service\PreguntaServiceImplTest.class
+com\bancopreguntas\domain\EstadoPreguntaTest.class
+com\bancopreguntas\domain\PreguntaTest.class
