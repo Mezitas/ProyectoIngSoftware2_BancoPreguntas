@@ -12,6 +12,7 @@ import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Vista (MVC) para la HU03: listar, paginar y filtrar las preguntas creadas
@@ -25,6 +26,7 @@ public class PanelListarPreguntas extends JPanel {
 
     private final PreguntaController controller;
     private final SujetoPreguntas sujetoPreguntas;
+    private final Consumer<Pregunta> alEditar;
     private final ObservadorPreguntas observadorPreguntas = this::actualizarDesdeObserver;
 
     private final JTextField txtBusqueda = new JTextField(12);
@@ -41,14 +43,22 @@ public class PanelListarPreguntas extends JPanel {
     private final JButton btnSiguiente = new JButton("Siguiente >");
     private final JButton btnEnviarRevision = new JButton("Enviar a revisión");
     private final JButton btnEliminar = new JButton("Eliminar pregunta");
+    private final JButton btnVer = new JButton("Ver detalle");
+    private final JButton btnEditar = new JButton("Editar pregunta");
     private final JLabel lblMensaje = new JLabel(" ");
     private final PanelGraficoEstados panelGrafico = new PanelGraficoEstados();
 
     private int paginaActual = 1;
 
     public PanelListarPreguntas(PreguntaController controller, SujetoPreguntas sujetoPreguntas) {
+        this(controller, sujetoPreguntas, pregunta -> { });
+    }
+
+    public PanelListarPreguntas(PreguntaController controller, SujetoPreguntas sujetoPreguntas,
+                                Consumer<Pregunta> alEditar) {
         this.controller = controller;
         this.sujetoPreguntas = sujetoPreguntas;
+        this.alEditar = alEditar;
         sujetoPreguntas.suscribir(observadorPreguntas);
         construirUI();
         cargar();
@@ -87,6 +97,7 @@ public class PanelListarPreguntas extends JPanel {
         tabla.setRowHeight(24);
         tabla.getColumnModel().getColumn(5).setCellRenderer(new EstadoBadgeRenderer());
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabla.getSelectionModel().addListSelectionListener(e -> actualizarAcciones());
         add(new JScrollPane(tabla), BorderLayout.CENTER);
 
         JPanel sur = new JPanel(new BorderLayout());
@@ -99,6 +110,10 @@ public class PanelListarPreguntas extends JPanel {
         paginacion.add(btnSiguiente);
 
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        btnVer.addActionListener(e -> verDetalle());
+        acciones.add(btnVer);
+        btnEditar.addActionListener(e -> editarPregunta());
+        acciones.add(btnEditar);
         btnEnviarRevision.addActionListener(e -> enviarARevision());
         acciones.add(btnEnviarRevision);
         btnEliminar.addActionListener(e -> eliminarPregunta());
@@ -126,12 +141,12 @@ public class PanelListarPreguntas extends JPanel {
         }
 
         ResultadoPaginado<Pregunta> resultado = controller.listarMisPreguntas(
-                SesionActual.getUsuarioActual().getId(), filtro, paginaActual, TAMANO_PAGINA);
-        panelGrafico.actualizar(controller.contarEstadosVisiblesPorAutor(
-                SesionActual.getUsuarioActual().getId()));
+                filtro, paginaActual, TAMANO_PAGINA);
+        panelGrafico.actualizar(controller.contarEstadosVisiblesPorAutor());
 
         paginaActual = resultado.getPagina();
         modeloTabla.actualizar(resultado.getElementos());
+        actualizarAcciones();
 
         lblPagina.setText("Página " + resultado.getPagina() + " de " + resultado.getTotalPaginas()
                 + "  (" + resultado.getTotalElementos() + " preguntas)");
@@ -145,39 +160,79 @@ public class PanelListarPreguntas extends JPanel {
     }
 
     private void enviarARevision() {
-        int fila = tabla.getSelectedRow();
-        if (fila < 0) {
-            lblMensaje.setText("Seleccione una pregunta de la tabla.");
-            return;
-        }
-        Pregunta seleccionada = modeloTabla.get(fila);
+        Pregunta seleccionada = preguntaSeleccionada();
+        if (seleccionada == null) return;
         try {
             controller.enviarARevision(seleccionada.getId());
+            cargar();
             lblMensaje.setForeground(new Color(46, 125, 50));
             lblMensaje.setText("La pregunta ahora está \"Pendiente de revisión\".");
-            cargar();
-        } catch (IllegalStateException ex) {
+        } catch (IllegalStateException | SecurityException ex) {
             lblMensaje.setForeground(new Color(198, 40, 40));
             lblMensaje.setText(ex.getMessage());
         }
     }
 
     private void eliminarPregunta() {
-        int fila = tabla.getSelectedRow();
-        if (fila < 0) {
-            lblMensaje.setText("Seleccione una pregunta de la tabla.");
-            return;
-        }
-        Pregunta seleccionada = modeloTabla.get(fila);
+        Pregunta seleccionada = preguntaSeleccionada();
+        if (seleccionada == null) return;
         try {
             controller.eliminarPregunta(seleccionada.getId());
+            cargar();
             lblMensaje.setForeground(new Color(46, 125, 50));
             lblMensaje.setText("La pregunta fue marcada como eliminada.");
-            cargar();
-        } catch (IllegalStateException ex) {
+        } catch (IllegalStateException | SecurityException ex) {
             lblMensaje.setForeground(new Color(198, 40, 40));
             lblMensaje.setText(ex.getMessage());
         }
+    }
+
+    private void verDetalle() {
+        Pregunta pregunta = preguntaSeleccionada();
+        if (pregunta == null) return;
+        String detalle = "Estado: " + pregunta.getEstado().getEtiqueta()
+                + "\nContexto: " + pregunta.getContexto()
+                + "\nPregunta: " + pregunta.getPreguntaDirecta()
+                + "\nDistractores: " + String.join(" | ", pregunta.getDistractores())
+                + "\nRespuesta correcta: " + pregunta.getRespuestaCorrecta()
+                + "\nJustificación: " + pregunta.getJustificacion()
+                + "\nBibliografía: " + pregunta.getBibliografia()
+                + "\nCompetencia: " + pregunta.getCompetencia()
+                + "\nTema: " + pregunta.getTema()
+                + "\nSubtema: " + pregunta.getSubtema()
+                + "\nDificultad: " + pregunta.getNivelDificultad();
+        JTextArea texto = new JTextArea(detalle, 18, 60);
+        texto.setEditable(false);
+        texto.setLineWrap(true);
+        texto.setWrapStyleWord(true);
+        JOptionPane.showMessageDialog(this, new JScrollPane(texto), "Detalle de la pregunta",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void editarPregunta() {
+        Pregunta pregunta = preguntaSeleccionada();
+        if (pregunta != null) alEditar.accept(pregunta);
+    }
+
+    private Pregunta preguntaSeleccionada() {
+        int fila = tabla.getSelectedRow();
+        if (fila < 0) {
+            lblMensaje.setText("Seleccione una pregunta de la tabla.");
+            return null;
+        }
+        return modeloTabla.get(fila);
+    }
+
+    private void actualizarAcciones() {
+        int fila = tabla.getSelectedRow();
+        Pregunta seleccionada = fila < 0 ? null : modeloTabla.get(fila);
+        boolean editable = seleccionada != null
+                && (seleccionada.getEstado() == EstadoPregunta.BORRADOR
+                || seleccionada.getEstado() == EstadoPregunta.RECHAZADA);
+        btnEditar.setEnabled(editable);
+        btnEnviarRevision.setEnabled(seleccionada != null
+                && seleccionada.getEstado() == EstadoPregunta.BORRADOR);
+        btnEliminar.setEnabled(editable);
     }
 
     private void actualizarDesdeObserver() {

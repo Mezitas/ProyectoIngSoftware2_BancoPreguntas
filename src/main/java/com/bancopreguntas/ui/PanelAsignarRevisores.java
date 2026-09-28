@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 /**
  * Vista (MVC) para la HU04: el administrador asigna al menos un revisor a
- * las preguntas en estado "Pendiente de revisión"; al confirmar, el sistema
- * notifica por correo (patron Observer en la capa de negocio).
+ * las preguntas en estado "Pendiente de revisión"; al asignarlas, pasan a
+ * estado "En revisión" y quedan visibles en la bandeja de cada revisor.
  */
 public class PanelAsignarRevisores extends JPanel {
 
@@ -52,7 +52,7 @@ public class PanelAsignarRevisores extends JPanel {
         add(centro, BorderLayout.CENTER);
 
         JPanel sur = new JPanel(new BorderLayout());
-        JButton btnAsignar = new JButton("Asignar revisor(es) y notificar por correo");
+        JButton btnAsignar = new JButton("Asignar revisor(es)");
         btnAsignar.addActionListener(e -> asignar());
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER));
         botones.add(btnAsignar);
@@ -89,10 +89,10 @@ public class PanelAsignarRevisores extends JPanel {
         try {
             List<String> revisoresIds = revisores.stream().map(Usuario::getId).collect(Collectors.toList());
             controller.asignarRevisores(pregunta.getId(), revisoresIds);
-            lblMensaje.setForeground(new Color(46, 125, 50));
-            lblMensaje.setText("Revisor(es) asignado(s). Se envió la notificación por correo (ver consola).");
             cargar();
-        } catch (RuntimeException ex) {
+            lblMensaje.setForeground(new Color(46, 125, 50));
+            lblMensaje.setText("Revisor(es) asignado(s). La pregunta pasó a estado En revisión.");
+        } catch (SecurityException | IllegalStateException | IllegalArgumentException ex) {
             lblMensaje.setForeground(new Color(198, 40, 40));
             lblMensaje.setText(ex.getMessage());
         }

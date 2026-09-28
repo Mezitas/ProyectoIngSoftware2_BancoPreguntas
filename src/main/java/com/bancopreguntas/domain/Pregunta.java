@@ -51,9 +51,9 @@ public class Pregunta implements Serializable {
         this.nivelDificultad = b.nivelDificultad;
         this.estado = b.estado;
         this.autorId = b.autorId;
-        this.revisoresAsignados = new ArrayList<>();
-        this.fechaCreacion = LocalDateTime.now();
-        this.fechaActualizacion = this.fechaCreacion;
+        this.revisoresAsignados = new ArrayList<>(b.revisoresAsignados);
+        this.fechaCreacion = b.fechaCreacion == null ? LocalDateTime.now() : b.fechaCreacion;
+        this.fechaActualizacion = b.fechaActualizacion == null ? this.fechaCreacion : b.fechaActualizacion;
     }
 
     public static Builder builder() {
@@ -175,6 +175,9 @@ public class Pregunta implements Serializable {
         private NivelDificultad nivelDificultad;
         private EstadoPregunta estado = EstadoPregunta.BORRADOR;
         private String autorId;
+        private List<String> revisoresAsignados = new ArrayList<>();
+        private LocalDateTime fechaCreacion;
+        private LocalDateTime fechaActualizacion;
 
         public Builder id(String id) {
             this.id = id;
@@ -238,6 +241,17 @@ public class Pregunta implements Serializable {
 
         public Builder autorId(String autorId) {
             this.autorId = autorId;
+            return this;
+        }
+
+        public Builder revisoresAsignados(List<String> revisoresAsignados) {
+            this.revisoresAsignados = new ArrayList<>(revisoresAsignados);
+            return this;
+        }
+
+        public Builder fechas(LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion) {
+            this.fechaCreacion = fechaCreacion;
+            this.fechaActualizacion = fechaActualizacion;
             return this;
         }
 

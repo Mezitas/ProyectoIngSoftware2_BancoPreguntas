@@ -1,5 +1,6 @@
-C:\Users\LEGION\Documents\BancoPreguntasJava\banco-preguntas\src\test\java\com\bancopreguntas\domain\EstadoPreguntaTest.java
-C:\Users\LEGION\Documents\BancoPreguntasJava\banco-preguntas\src\test\java\com\bancopreguntas\domain\PreguntaTest.java
-C:\Users\LEGION\Documents\BancoPreguntasJava\banco-preguntas\src\test\java\com\bancopreguntas\repository\PreguntaRepositoryEnMemoriaTest.java
-C:\Users\LEGION\Documents\BancoPreguntasJava\banco-preguntas\src\test\java\com\bancopreguntas\service\PreguntaServiceImplTest.java
-C:\Users\LEGION\Documents\BancoPreguntasJava\banco-preguntas\src\test\java\com\bancopreguntas\validacion\ValidadorEstructuralPreguntaTest.java
+D:\universidad\6_Semestre\Ing_Software_2\banco-preguntas\src\test\java\com\bancopreguntas\domain\EstadoPreguntaTest.java
+D:\universidad\6_Semestre\Ing_Software_2\banco-preguntas\src\test\java\com\bancopreguntas\domain\PreguntaTest.java
+D:\universidad\6_Semestre\Ing_Software_2\banco-preguntas\src\test\java\com\bancopreguntas\repository\PreguntaRepositoryEnMemoriaTest.java
+D:\universidad\6_Semestre\Ing_Software_2\banco-preguntas\src\test\java\com\bancopreguntas\repository\SQLitePersistenceTest.java
+D:\universidad\6_Semestre\Ing_Software_2\banco-preguntas\src\test\java\com\bancopreguntas\service\PreguntaServiceImplTest.java
+D:\universidad\6_Semestre\Ing_Software_2\banco-preguntas\src\test\java\com\bancopreguntas\validacion\ValidadorEstructuralPreguntaTest.java

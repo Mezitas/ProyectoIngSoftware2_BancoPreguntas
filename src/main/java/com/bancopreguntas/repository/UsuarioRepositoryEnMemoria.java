@@ -41,6 +41,13 @@ public class UsuarioRepositoryEnMemoria implements UsuarioRepository {
     }
 
     @Override
+    public synchronized Optional<Usuario> buscarPorEmail(String email) {
+        return usuarios.values().stream()
+                .filter(usuario -> usuario.getEmail().equalsIgnoreCase(email))
+                .findFirst();
+    }
+
+    @Override
     public synchronized List<Usuario> listarTodos() {
         return new ArrayList<>(usuarios.values());
     }

@@ -9,27 +9,23 @@ import java.awt.*;
 
 /**
  * Ventana principal de la aplicacion de escritorio. Compone las tres vistas
- * (Crear, Mis preguntas, Asignar revisores) en pestanas y ofrece un
- * selector de "usuario actual" para poder demostrar en vivo los flujos de
- * autor y de administrador sin necesidad de un modulo de autenticacion,
- * el cual esta fuera del alcance funcional del primer corte.
+ * pestañas disponibles según el rol del usuario autenticado.
  */
 public class VentanaPrincipal extends JFrame {
 
     private final PreguntaController controller;
     private final SujetoPreguntas sujetoPreguntas;
 
-    private final JComboBox<Usuario> cmbUsuario = new JComboBox<>();
     private final JTabbedPane tabs = new JTabbedPane();
+    private final JLabel usuarioActivo = new JLabel();
 
     private PanelListarPreguntas panelListar;
-    private PanelAsignarRevisores panelAsignar;
-    private int indiceTabAsignar = -1;
 
-    public VentanaPrincipal(PreguntaController controller, SujetoPreguntas sujetoPreguntas) {
+    public VentanaPrincipal(PreguntaController controller, SujetoPreguntas sujetoPreguntas, Usuario usuario) {
         super("Banco de Preguntas Saber Pro - Ingeniería de Software II");
         this.controller = controller;
         this.sujetoPreguntas = sujetoPreguntas;
+        SesionActual.setUsuarioActual(usuario);
         construirUI();
     }
 
@@ -40,25 +36,14 @@ public class VentanaPrincipal extends JFrame {
         setLayout(new BorderLayout());
 
         JPanel barraSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        barraSuperior.add(new JLabel("Usuario en sesión (demo):"));
-
-        controller.listarUsuarios().forEach(cmbUsuario::addItem);
-        cmbUsuario.addActionListener(e -> onCambioUsuario());
-        barraSuperior.add(cmbUsuario);
+        barraSuperior.add(usuarioActivo);
+        JButton cerrarSesion = new JButton("Cerrar sesión");
+        cerrarSesion.addActionListener(event -> cambiarUsuario());
+        barraSuperior.add(cerrarSesion);
         add(barraSuperior, BorderLayout.NORTH);
 
         add(tabs, BorderLayout.CENTER);
-
-        if (cmbUsuario.getItemCount() > 0) {
-            cmbUsuario.setSelectedIndex(0);
-        }
-    }
-
-    private void onCambioUsuario() {
-        Usuario seleccionado = (Usuario) cmbUsuario.getSelectedItem();
-        if (seleccionado == null) return;
-        SesionActual.setUsuarioActual(seleccionado);
-        reconstruirTabs(seleccionado);
+        reconstruirTabs(SesionActual.getUsuarioActual());
     }
 
     private void reconstruirTabs(Usuario usuario) {
@@ -66,21 +51,39 @@ public class VentanaPrincipal extends JFrame {
             panelListar.cerrar();
         }
         tabs.removeAll();
+        usuarioActivo.setText("Sesión: " + usuario.getNombre() + " — " + usuario.getRol().getEtiqueta());
+        panelListar = null;
 
-        PanelCrearPregunta panelCrear = new PanelCrearPregunta(controller, this::refrescarListado);
-        panelListar = new PanelListarPreguntas(controller, sujetoPreguntas);
-
-        tabs.addTab("Crear pregunta", panelCrear);
-        tabs.addTab("Mis preguntas", panelListar);
-
-        if (usuario.getRol() == Rol.ADMINISTRADOR) {
-            panelAsignar = new PanelAsignarRevisores(controller);
-            tabs.addTab("Asignar revisores", panelAsignar);
-            indiceTabAsignar = tabs.indexOfComponent(panelAsignar);
+        if (usuario.getRol() == Rol.AUTOR) {
+            PanelCrearPregunta panelCrear = new PanelCrearPregunta(controller, this::refrescarListado);
+            panelListar = new PanelListarPreguntas(controller, sujetoPreguntas, this::abrirEdicion);
+            tabs.addTab("Crear pregunta", panelCrear);
+            tabs.addTab("Mis preguntas", panelListar);
+        } else if (usuario.getRol() == Rol.ADMINISTRADOR) {
+            tabs.addTab("Asignar revisores", new PanelAsignarRevisores(controller));
         } else {
-            panelAsignar = null;
-            indiceTabAsignar = -1;
+            tabs.addTab("Mis revisiones", new PanelMisRevisiones(controller));
         }
+    }
+
+    private void cambiarUsuario() {
+        Usuario usuario = new DialogoLogin(this, controller).mostrar();
+        if (usuario != null) {
+            SesionActual.setUsuarioActual(usuario);
+            reconstruirTabs(usuario);
+        }
+    }
+
+    private void abrirEdicion(com.bancopreguntas.domain.Pregunta pregunta) {
+        JDialog dialogo = new JDialog(this, "Editar pregunta", true);
+        PanelCrearPregunta formulario = new PanelCrearPregunta(controller, () -> {
+            if (panelListar != null) panelListar.cargar();
+            dialogo.dispose();
+        }, pregunta);
+        dialogo.setContentPane(formulario);
+        dialogo.setSize(700, 600);
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
     }
 
     private void refrescarListado() {

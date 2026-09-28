@@ -19,6 +19,7 @@ public class PanelCrearPregunta extends JPanel {
 
     private final PreguntaController controller;
     private final Runnable alGuardarExitoso;
+    private final Pregunta preguntaEditar;
 
     private final JTextArea txtContexto = new JTextArea(3, 30);
     private final JTextField txtPreguntaDirecta = new JTextField();
@@ -35,9 +36,17 @@ public class PanelCrearPregunta extends JPanel {
     private final JLabel lblMensaje = new JLabel(" ");
 
     public PanelCrearPregunta(PreguntaController controller, Runnable alGuardarExitoso) {
+        this(controller, alGuardarExitoso, null);
+    }
+
+    public PanelCrearPregunta(PreguntaController controller, Runnable alGuardarExitoso, Pregunta preguntaEditar) {
         this.controller = controller;
         this.alGuardarExitoso = alGuardarExitoso;
+        this.preguntaEditar = preguntaEditar;
         construirUI();
+        if (preguntaEditar != null) {
+            cargarPregunta(preguntaEditar);
+        }
     }
 
     private void construirUI() {
@@ -69,7 +78,8 @@ public class PanelCrearPregunta extends JPanel {
         fila = agregarCampo(form, gc, fila, "Subtema:", txtSubtema);
         fila = agregarCampo(form, gc, fila, "Nivel de dificultad:", cmbNivelDificultad);
 
-        JButton btnGuardar = new JButton("Guardar pregunta (queda en Borrador)");
+        JButton btnGuardar = new JButton(preguntaEditar == null
+                ? "Guardar pregunta (queda en Borrador)" : "Guardar cambios");
         btnGuardar.addActionListener(e -> guardar());
 
         gc.gridx = 1;
@@ -102,7 +112,7 @@ public class PanelCrearPregunta extends JPanel {
             distractores.add(txt.getText());
         }
 
-        Pregunta pregunta = Pregunta.builder()
+        Pregunta contenido = Pregunta.builder()
                 .contexto(txtContexto.getText())
                 .preguntaDirecta(txtPreguntaDirecta.getText())
                 .distractores(distractores)
@@ -117,16 +127,43 @@ public class PanelCrearPregunta extends JPanel {
                 .build();
 
         try {
-            controller.crearPregunta(pregunta);
+            if (preguntaEditar == null) {
+                controller.crearPregunta(contenido);
+            } else {
+                controller.actualizarPregunta(preguntaEditar.getId(), contenido);
+            }
             lblMensaje.setForeground(new Color(46, 125, 50));
-            lblMensaje.setText("Pregunta guardada correctamente en estado Borrador.");
-            limpiarFormulario();
+            lblMensaje.setText(preguntaEditar == null
+                    ? "Pregunta guardada correctamente en estado Borrador."
+                    : "Cambios guardados correctamente.");
+            if (preguntaEditar == null) {
+                limpiarFormulario();
+            }
             if (alGuardarExitoso != null) alGuardarExitoso.run();
-        } catch (ValidacionException ex) {
+        } catch (ValidacionException | IllegalStateException | SecurityException ex) {
             lblMensaje.setForeground(new Color(198, 40, 40));
-            lblMensaje.setText("<html>Errores de validación estructural:<br>"
-                    + String.join("<br>", ex.getErrores()) + "</html>");
+            if (ex instanceof ValidacionException validacion) {
+                lblMensaje.setText("<html>Errores de validación estructural:<br>"
+                        + String.join("<br>", validacion.getErrores()) + "</html>");
+            } else {
+                lblMensaje.setText(ex.getMessage());
+            }
         }
+    }
+
+    private void cargarPregunta(Pregunta pregunta) {
+        txtContexto.setText(pregunta.getContexto());
+        txtPreguntaDirecta.setText(pregunta.getPreguntaDirecta());
+        for (int i = 0; i < txtDistractores.length; i++) {
+            txtDistractores[i].setText(pregunta.getDistractores().get(i));
+        }
+        txtRespuestaCorrecta.setText(pregunta.getRespuestaCorrecta());
+        txtJustificacion.setText(pregunta.getJustificacion());
+        txtBibliografia.setText(pregunta.getBibliografia());
+        txtCompetencia.setText(pregunta.getCompetencia());
+        txtTema.setText(pregunta.getTema());
+        txtSubtema.setText(pregunta.getSubtema());
+        cmbNivelDificultad.setSelectedItem(pregunta.getNivelDificultad());
     }
 
     private void limpiarFormulario() {

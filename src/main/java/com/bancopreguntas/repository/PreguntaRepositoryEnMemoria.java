@@ -65,4 +65,11 @@ public class PreguntaRepositoryEnMemoria implements PreguntaRepository {
                 .filter(p -> p.getEstado() == estado)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public synchronized List<Pregunta> listarAsignadasARevisor(String revisorId) {
+        return preguntas.values().stream()
+                .filter(p -> p.getRevisoresAsignados().contains(revisorId))
+                .collect(Collectors.toList());
+    }
 }

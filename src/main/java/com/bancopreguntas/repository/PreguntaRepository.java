@@ -22,4 +22,6 @@ public interface PreguntaRepository {
     List<Pregunta> listarPorAutor(String autorId);
 
     List<Pregunta> listarPorEstado(EstadoPregunta estado);
+
+    List<Pregunta> listarAsignadasARevisor(String revisorId);
 }

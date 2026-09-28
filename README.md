@@ -1,95 +1,74 @@
-# Banco de Preguntas Saber Pro — Primer Corte (Ingeniería de Software II)
-# Joseph David Trujillo Gómez - Juan Pablo Hernandez Bravo - Juan David Meza Paz
+# Banco de Preguntas Saber Pro — Primer corte
 
-Aplicación de escritorio en **Java (Swing)**, con arquitectura **monolítica en 3 capas**
-(Presentación, Negocio, Datos) y micro-patrón **MVC**, que implementa las 4 historias de
-usuario de alto valor solicitadas para el primer corte.
+Aplicación de escritorio Java 17 con Swing, monolito en tres capas (presentación, negocio y datos) y micro-patrón MVC. Incluye autenticación local con roles, preguntas Saber Pro, revisión y persistencia SQLite.
 
-## Descripción
+## Ejecutar y probar
 
+Se incluye Maven Wrapper para Windows y sistemas Unix. Se necesita Java 17 o posterior; no hace falta instalar Maven:
 
-Al iniciar, la aplicación carga usuarios y preguntas de ejemplo. Arriba a la izquierda hay
-un selector de "usuario en sesión" para alternar entre el rol **Autor** (Ana Torres) y el
-rol **Administrador** (David Gómez) sin necesidad de un módulo de login, que no forma
-parte del alcance funcional de este corte.
-
-## Historias de usuario implementadas
-
-| HU | Descripción | Dónde se implementa |
-|----|-------------|----------------------|
-| HU01 | Crear preguntas de selección múltiple (Diseño Centrado en Evidencia) con validación estructural al grabar | `PanelCrearPregunta`, `PreguntaServiceImpl#crearPregunta`, `ValidadorEstructuralPregunta` |
-| HU02 | Cambiar estado de "Borrador" a "Pendiente de revisión", visualizado con colores | `PanelListarPreguntas`, `PreguntaServiceImpl#cambiarEstado`, `EstadoPregunta` (color por estado), `EstadoBadgeRenderer` |
-| HU03 | Listar preguntas propias con paginación, filtros, eliminación lógica y gráfico de estados | `PanelListarPreguntas`, `PanelGraficoEstados`, `PreguntaServiceImpl#listarPreguntasPorAutor` |
-| HU04 | Administrador asigna revisor(es) a preguntas "Pendiente de revisión" y el sistema notifica por correo | `PanelAsignarRevisores`, `PreguntaServiceImpl#asignarRevisores`, patrón Observer (`SujetoAsignacion`, `ObservadorAsignacion`, `NotificadorEmailObservador`) |
-
-## Arquitectura en 3 capas
-
+```powershell
+.\mvnw.cmd clean test
+.\mvnw.cmd exec:java
 ```
+
+En Unix/macOS: `sh ./mvnw clean test` y `sh ./mvnw exec:java`.
+
+En Java 24 o posterior, el Maven Wrapper habilita el acceso nativo requerido por SQLite y evita la advertencia de carga JNI. Si se ejecuta `App` directamente desde un IDE, añadir `--enable-native-access=ALL-UNNAMED` a las opciones de la máquina virtual. La dependencia `slf4j-nop` configura el backend silencioso que usa SQLite y evita el aviso de que falta un proveedor SLF4J.
+
+La base `data/banco-preguntas.db` y sus tablas se crean al iniciar la aplicación. Se excluye del control de versiones. Los usuarios de demostración y dos preguntas de ejemplo se inicializan si corresponde; la información creada por usuarios permanece en SQLite al cerrar la aplicación.
+
+## Cuentas de demostración
+
+Las cuentas se almacenan con contraseñas derivadas mediante PBKDF2, no en texto plano. Estas credenciales son únicamente para desarrollo y sustentación; deben cambiarse antes de cualquier uso real.
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Autor | `ana@bancopreguntas.local` | `Autor123!` |
+| Administrador | `admin@bancopreguntas.local` | `Admin123!` |
+| Revisor | `juan@bancopreguntas.local` | `Revisor123!` |
+| Revisor | `pablo@bancopreguntas.local` | `Revisor123!` |
+
+El login permite cerrar sesión y entrar con otra cuenta. Las pestañas y las operaciones disponibles dependen del rol autenticado.
+
+## Historias funcionales
+
+| HU | Funcionalidad | Implementación |
+|---|---|---|
+| HU01 | Crear preguntas de selección múltiple con contexto, pregunta, cuatro distractores, respuesta, justificación, bibliografía, competencia, tema, subtema y dificultad. Validación estructural al guardar. | `PanelCrearPregunta`, `PreguntaServiceImpl`, `ValidadorEstructuralPregunta` |
+| HU02 | Cambiar preguntas propias de borrador a pendientes de revisión y visualizar estados con colores. | `PanelListarPreguntas`, `PreguntaServiceImpl`, `EstadoBadgeRenderer` |
+| HU03 | Consultar preguntas propias con filtros y paginación, ver todos sus campos y editar borradores o preguntas rechazadas. Al corregir una rechazada, vuelve a borrador. | `PanelListarPreguntas`, `PanelCrearPregunta`, `FiltroPregunta`, `ResultadoPaginado` |
+| HU04 | El administrador asigna uno o más revisores a preguntas pendientes. La asignación cambia el estado a “En revisión”; cada revisor ve en su pestaña las preguntas asignadas y puede aprobarlas o rechazarlas. | `PanelAsignarRevisores`, `PanelMisRevisiones`, `PreguntaServiceImpl` |
+
+Los cambios de creación, edición, estado, asignación y decisión de revisión se registran en la tabla SQLite `auditoria` con actor, pregunta, acción, detalle y fecha.
+No se envía correo: la asignación se comunica al revisor mediante su pestaña de preguntas asignadas.
+La gráfica del autor distingue borradores, preguntas en revisión, aprobadas, rechazadas y eliminadas; cada categoría tiene un color de alto contraste y su conteo se muestra en la leyenda.
+El servicio de conteo ofrece sobrecargas para recibir el usuario autenticado o el id del autor, manteniendo compatibilidad con ambos tipos de cliente.
+
+## Reglas por rol
+
+- **Autor:** crea preguntas en su propio nombre; lista y edita únicamente las propias. Puede editar solo en estado Borrador o Rechazada. Al editar una pregunta rechazada, vuelve a Borrador. Solo puede enviar borradores a revisión y eliminar borradores o preguntas rechazadas.
+- **Administrador:** consulta pendientes y asigna revisores existentes. El negocio verifica el rol de administrador y que cada usuario asignado tenga rol Revisor. La asignación mueve la pregunta a En revisión.
+- **Revisor:** consulta únicamente preguntas asignadas a su usuario y puede tomar una decisión una vez: Aprobar o Rechazar.
+
+Las reglas se validan en la capa de negocio y no dependen solamente de ocultar pestañas en Swing. En este corte la autenticación valida cuentas locales con credenciales de demostración; no reemplaza un sistema de identidad para producción.
+Los métodos de servicio que consultan pendientes requieren recibir el usuario administrador autenticado; la sobrecarga antigua sin actor se conserva únicamente por compatibilidad y falla de forma segura.
+
+## Arquitectura y diseño
+
+```text
 com.bancopreguntas
-├── domain/        → Entidades del negocio (capa de Negocio / Modelo)
-├── validacion/     → Estrategias de validación (Strategy)
-├── notificacion/   → Mecanismo de notificación (Observer)
-├── repository/     → Capa de Datos (interfaces + implementación en memoria)
-├── service/        → Capa de Negocio (reglas, orquestación)
-└── ui/             → Capa de Presentación (Vistas Swing + Controlador → MVC)
+├── ui/             Presentación Swing: vistas y PreguntaController (MVC)
+├── service/        Reglas de negocio, autenticación y hash de contraseñas
+├── domain/         Pregunta, Usuario, roles y estados
+├── validacion/     Validación estructural intercambiable (Strategy)
+├── repository/     Interfaces y adaptadores SQLite
+└── notificacion/   Observers para cambios/asignaciones
 ```
 
-* **Presentación**: paquete `ui`. `VentanaPrincipal` compone las vistas (`PanelCrearPregunta`,
-  `PanelListarPreguntas`, `PanelAsignarRevisores`), que son la "Vista" del MVC. Toda vista
-  habla únicamente con `PreguntaController` (el "Controlador"), nunca con la capa de datos
-  directamente.
-* **Negocio**: paquete `service`. `PreguntaServiceImpl` contiene las reglas de negocio
-  (validación estructural, transiciones de estado válidas, paginación/filtrado, asignación
-  de revisores) y es el "Modelo" del MVC desde el punto de vista de la vista.
-* **Datos**: paquete `repository`. Interfaces (`PreguntaRepository`, `UsuarioRepository`)
-  con una implementación en memoria (suficiente para la demo funcional del primer corte),
-  desacoplada del resto de la aplicación gracias al principio de Inversión de Dependencias.
+La composición de dependencias se realiza en `App`. `PreguntaRepositorySQLite`, `UsuarioRepositorySQLite` y `RepositorioAuditoriaSQLite` encapsulan el acceso a SQLite mediante JDBC y sentencias preparadas. La capa de negocio depende de interfaces de repositorio (DIP), y la factoría de conexiones/esquema `SQLiteDatabase` centraliza la inicialización de la base. Se mantienen Builder, Strategy y Observer; `Pregunta.Builder` admite reconstruir preguntas con sus fechas e ids para preservar los datos leídos de SQLite.
 
-## Principios SOLID aplicados
+La base implementa las tablas `usuarios`, `preguntas`, `pregunta_distractores`, `pregunta_revisores` y `auditoria`. Las opciones y asignaciones están normalizadas y enlazadas con claves foráneas.
 
-* **S**RP: cada clase tiene una única responsabilidad (`ValidadorEstructuralPregunta` solo
-  valida, `PreguntaRepositoryEnMemoria` solo persiste, `PreguntaController` solo media entre
-  UI y negocio).
-* **O**CP: se pueden agregar nuevas estrategias de validación (`ValidadorPregunta`) o nuevos
-  observadores de notificación (`ObservadorAsignacion`) sin modificar el código existente.
-* **L**SP: cualquier implementación de `PreguntaRepository`, `ValidadorPregunta` o
-  `EmailService` puede sustituir a otra sin romper el comportamiento esperado por quien la usa.
-* **I**SP: interfaces pequeñas y específicas (`PreguntaRepository`, `UsuarioRepository`,
-  `ValidadorPregunta`, `EmailService`, `ObservadorAsignacion`) en lugar de una interfaz
-  monolítica.
-* **D**IP: `PreguntaServiceImpl` depende de abstracciones (`PreguntaRepository`,
-  `UsuarioRepository`, `ValidadorPregunta`) inyectadas por constructor, no de clases concretas.
+## Pruebas
 
-## Patrones de diseño GoF implementados
-
-1. **Builder** (`Pregunta.Builder`): construye el objeto `Pregunta`, que tiene muchos campos
-   obligatorios, paso a paso y de forma legible, evitando un constructor telescópico.
-2. **Strategy** (`ValidadorPregunta` / `ValidadorEstructuralPregunta`): encapsula el algoritmo
-   de validación estructural como una estrategia intercambiable, aplicada al grabar (HU01).
-3. **Observer** (`SujetoAsignacion`, `ObservadorAsignacion`, `NotificadorEmailObservador`,
-   `SujetoPreguntas`, `ObservadorPreguntas`): además de notificar la asignación de revisores,
-   actualiza el gráfico de "Mis preguntas" cuando se crea, envía a revisión o elimina una pregunta.
-4. **Singleton** (`PreguntaRepositoryEnMemoria#getInstance`, `UsuarioRepositoryEnMemoria#getInstance`):
-   garantiza una única fuente de datos en memoria durante la ejecución de la aplicación de
-   escritorio (la UI los consume vía `getInstance()`; las pruebas unitarias usan el
-   constructor público para tener instancias aisladas).
-
-
-## Pruebas unitarias
-
-Se incluyen pruebas JUnit 5 para las clases de dominio y de negocio (`mvn test`):
-
-* `domain/PreguntaTest`, `domain/EstadoPreguntaTest`
-* `validacion/ValidadorEstructuralPreguntaTest`
-* `repository/PreguntaRepositoryEnMemoriaTest`
-* `service/PreguntaServiceImplTest` (cubre las 4 historias de usuario, incluida la
-  notificación vía Observer)
-
-## Persistencia
-
-Este entregable usa repositorios **en memoria** (los datos se reinician al cerrar la
-aplicación), lo cual es adecuado para la demostración funcional del primer corte descrita
-por el profesor. La capa de datos está aislada detrás de interfaces (`PreguntaRepository`,
-`UsuarioRepository`), de modo que en un corte posterior se puede sustituir por una
-implementación con base de datos (JDBC/JPA) sin modificar la capa de negocio ni la de
-presentación.
+`.\mvnw.cmd test` ejecuta pruebas unitarias de dominio, validación, reglas por rol, edición, flujo de revisión, autenticación y persistencia SQLite en una base temporal.

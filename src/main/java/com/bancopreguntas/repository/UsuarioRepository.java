@@ -15,6 +15,8 @@ public interface UsuarioRepository {
 
     Optional<Usuario> buscarPorId(String id);
 
+    Optional<Usuario> buscarPorEmail(String email);
+
     List<Usuario> listarTodos();
 
     List<Usuario> listarPorRol(Rol rol);
