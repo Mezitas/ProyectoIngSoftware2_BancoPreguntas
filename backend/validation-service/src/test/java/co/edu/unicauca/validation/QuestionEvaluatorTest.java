@@ -5,6 +5,8 @@ import co.edu.unicauca.validation.domain.model.Option;
 import co.edu.unicauca.validation.domain.model.Question;
 import co.edu.unicauca.validation.decorator.BasicQuestion;
 import co.edu.unicauca.validation.decorator.HighDifficultyQuestion;
+import co.edu.unicauca.validation.dto.EvaluateRequestDTO;
+import co.edu.unicauca.validation.dto.ValidationRequestDTO;
 import co.edu.unicauca.validation.templatemethod.*;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -83,9 +85,32 @@ class QuestionEvaluatorTest {
     }
 
     @Test
-    void factoryCreaEvaluadores() {
-        assertInstanceOf(MultipleChoiceEvaluator.class, QuestionEvaluatorFactory.multipleChoice());
-        assertInstanceOf(TrueFalseEvaluator.class, QuestionEvaluatorFactory.trueFalse(true));
-        assertInstanceOf(CaseStudyEvaluator.class, QuestionEvaluatorFactory.caseStudy(List.of(mcq())));
+    void factoryMethodCreaElEvaluadorSegunElTipo() {
+        ValidationRequestDTO question = new ValidationRequestDTO(
+                "context", "statement", List.of(), "A", "justification",
+                "competency", "topic", "subtopic", "bibliography", "MEDIUM");
+
+        assertInstanceOf(MultipleChoiceEvaluator.class,
+                new MultipleChoiceEvaluatorCreator().createEvaluator(
+                        new EvaluateRequestDTO(question, "A", "MULTIPLE_CHOICE", null, null)));
+        assertInstanceOf(TrueFalseEvaluator.class,
+                new TrueFalseEvaluatorCreator().createEvaluator(
+                        new EvaluateRequestDTO(question, "V", "TRUE_FALSE", true, null)));
+        assertInstanceOf(CaseStudyEvaluator.class,
+                new CaseStudyEvaluatorCreator().createEvaluator(
+                        new EvaluateRequestDTO(question, "A", "CASE_STUDY", null, List.of(question))));
+    }
+
+    @Test
+    void factoryMethodValidaLosDatosNecesariosParaCrearElEvaluador() {
+        var trueFalseCreator = new TrueFalseEvaluatorCreator();
+        var caseStudyCreator = new CaseStudyEvaluatorCreator();
+
+        assertThrows(IllegalArgumentException.class, () -> trueFalseCreator.createEvaluator(
+                new EvaluateRequestDTO(null, "V", "TRUE_FALSE", null, null)));
+        assertThrows(IllegalArgumentException.class, () -> caseStudyCreator.createEvaluator(
+                new EvaluateRequestDTO(null, "A", "CASE_STUDY", null, List.of())));
+        assertThrows(IllegalArgumentException.class, () -> caseStudyCreator.createEvaluator(
+                new EvaluateRequestDTO(null, "A", "CASE_STUDY", null, null)));
     }
 }

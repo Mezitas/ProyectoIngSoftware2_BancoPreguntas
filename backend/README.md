@@ -6,14 +6,14 @@ Joseph David Trujillo Gómez · Juan Pablo Hernández
 Evolución del Banco de Preguntas Saber PRO (Taller 8) a 6 microservicios Spring Boot 3.3 / Java 17
 con comunicación **síncrona (REST)** y **asíncrona (RabbitMQ)**.
 
-| Servicio | Puerto | Responsabilidad | Comunicación |
+| Servicio | Puerto | Responsabilidad | Comunicación / documentación |
 |---|---|---|---|
-| user-service | 8081 | Autenticación y roles | REST (`POST /auth/login`, `GET /users/{id}`) |
-| validation-service | 8082 | Valida estructura de la pregunta | REST (`POST /validate`) |
-| question-service | 8083 | Contenido de la pregunta y flujo | REST + comando RabbitMQ |
-| lifecycle-service | 8084 | **Única autoridad del estado** (patrón State del Taller 8) | Listener RabbitMQ + REST |
-| review-service | 8085 | Asignaciones y resultados de revisión | REST + evento RabbitMQ |
-| notification-service | 8086 | Notificaciones sin bloquear el flujo | Listener RabbitMQ |
+| user-service | 8081 | Autenticación y roles | REST (`POST /auth/login`, `GET /users/{id}`) · Swagger UI `/swagger-ui/index.html` |
+| validation-service | 8082 | Valida estructura y evalúa preguntas | REST (`POST /validate`, `POST /evaluate`) · Swagger UI `/swagger-ui/index.html` |
+| question-service | 8083 | Contenido de la pregunta y flujo | REST + comando RabbitMQ · Swagger UI `/swagger-ui/index.html` |
+| lifecycle-service | 8084 | **Única autoridad del estado** (patrón State del Taller 8) | Listener RabbitMQ + REST · Swagger UI `/swagger-ui/index.html` |
+| review-service | 8085 | Asignaciones y resultados de revisión | REST + evento RabbitMQ · Swagger UI `/swagger-ui/index.html` |
+| notification-service | 8086 | Notificaciones sin bloquear el flujo | REST + listener RabbitMQ · Swagger UI `/swagger-ui/index.html` |
 
 ## Requisitos
 JDK 17+ (recomendado 17 o 21), Maven 3.8+, Docker (para RabbitMQ), Postman.
@@ -30,6 +30,21 @@ cd review-service && mvn spring-boot:run
 cd notification-service && mvn spring-boot:run
 ```
 Compilar todo: `mvn clean package` (raíz) · Pruebas unitarias: `mvn test`.
+
+## Swagger / OpenAPI
+
+Cada microservicio integra `springdoc-openapi-starter-webmvc-ui` 2.6.0 y publica su propia documentación OpenAPI; no hay un Swagger central ni un API Gateway. Con los servicios iniciados, abre la interfaz Swagger UI del servicio que quieras inspeccionar:
+
+| Servicio | Swagger UI | Especificación OpenAPI |
+|---|---|---|
+| Usuarios | `http://localhost:8081/swagger-ui/index.html` | `http://localhost:8081/v3/api-docs` |
+| Validación | `http://localhost:8082/swagger-ui/index.html` | `http://localhost:8082/v3/api-docs` |
+| Preguntas | `http://localhost:8083/swagger-ui/index.html` | `http://localhost:8083/v3/api-docs` |
+| Ciclo de vida | `http://localhost:8084/swagger-ui/index.html` | `http://localhost:8084/v3/api-docs` |
+| Revisión | `http://localhost:8085/swagger-ui/index.html` | `http://localhost:8085/v3/api-docs` |
+| Notificaciones | `http://localhost:8086/swagger-ui/index.html` | `http://localhost:8086/v3/api-docs` |
+
+Swagger documenta los controladores y contratos REST del servicio correspondiente; las operaciones internas de RabbitMQ no son endpoints REST. La metadata de cada API se define con `@OpenAPIDefinition` en su clase `*Application`.
 
 Importar en Postman `postman/SaberPro_Microservices.postman_collection.json` y
 `postman/SaberPro_Local.postman_environment.json`; elegir el entorno *SaberPro Local* y ejecutar la
@@ -75,6 +90,7 @@ Recompila y reinicia los servicios afectados (`question-service`, `validation-se
 |---|---|---|---|---|
 | **State** (con `REJECTED`) | `lifecycle-service` | `state/` | Controla las transiciones de estado de las preguntas | REST + RabbitMQ |
 | **Builder & Director** | `question-service` | `builder/`, `domain/model/` | Construye y valida objetos complejos de pregunta de 4 opciones | Usado en creación, edición e importación |
+| **Factory Method** | `validation-service` | `templatemethod/QuestionEvaluatorCreator` y `*EvaluatorCreator` | Cada creador concreto instancia el evaluador específico para una solicitud | `POST /evaluate` |
 | **Adapter** | `question-service` | `adapter/` | Adapta fuentes externas (JSON y cadenas crudas) al modelo de preguntas | `POST /questions/import?authorId={id}` |
 | **Facade** | `question-service` | `facade/QuestionBankFacade` | Punto de entrada unificado para operaciones del banco de preguntas | Toda la API en `/questions` |
 | **Decorator** | `question-service` & `validation-service` | `decorator/` | Enriquece preguntas con alta dificultad y retroalimentación técnica | `GET /questions/{id}/presentation` |
@@ -83,4 +99,4 @@ Recompila y reinicia los servicios afectados (`question-service`, `validation-se
 ### Nuevos Endpoints de Patrones
 - `POST /questions/import?authorId=1` → Importa reactivos externos (JSON + formato crudo), omitiendo duplicados e inválidos.
 - `GET /questions/{id}/presentation?altaDificultad=true&retroalimentacion=...` → Entrega la presentación enriquecida de la pregunta (Decorator).
-- `POST /evaluate` → Evalúa respuestas utilizando Template Method según el tipo de pregunta.
+- `POST /evaluate` → El Factory Method selecciona el creador concreto del evaluador y Template Method calcula el resultado según el tipo de pregunta.
