@@ -50,6 +50,7 @@ La Figura 1 también presenta los contextos de simulacros, seguimiento académic
 El backend está en `backend`; incluye los seis servicios Java/Spring Boot separados para usuarios (8081), validación (8082), preguntas (8083), ciclo de vida (8084), revisión (8085) y notificaciones (8086). El frontend no inicia ni administra estos servicios: deben estar activos y accesibles para poder iniciar sesión y usar las funciones correspondientes.
 
 Consulta el README de esa carpeta para los requisitos y comandos de ejecución. En particular, inicia RabbitMQ con `docker compose up -d` desde esa carpeta y luego levanta los seis servicios; en Windows el ejemplo incluye `start-all.bat`. Las credenciales incluidas son `docente1 / Docente123*`, `admin1 / Admin123*` y `revisor1` o `revisor2 / Revisor123*`.
+Cada microservicio publica su propia interfaz Swagger UI en `http://localhost:<puerto>/swagger-ui/index.html` y su especificación OpenAPI en `/v3/api-docs`; consulta la tabla de URLs en `backend/README.md`.
 
 La separación es física en procesos y lógica en código: el cliente Java realiza llamadas HTTP a las APIs REST; los microservicios conservan la lógica de negocio, persistencia, validación y mensajería. No es necesario instalar o ejecutar un servidor frontend. Sí se necesita ejecutar el backend (y RabbitMQ para sus operaciones asíncronas) en una máquina accesible desde la aplicación.
 

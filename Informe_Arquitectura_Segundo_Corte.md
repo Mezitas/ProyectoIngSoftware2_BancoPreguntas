@@ -3,10 +3,10 @@
 
 **Asignatura:** Ingeniería de Software II  
 **Universidad:** Universidad del Cauca  
-**Integrantes:** Juan Hernández, Juan Meza y Joseph Trujillo *(confirmar nombres completos y orden antes de entregar)*  
-**Fecha:** [día, mes y año]  
+**Integrantes:** Juan Hernández, Juan Meza y Joseph Trujillo
+**Fecha:** 05/11/2026
 **Repositorio:** https://github.com/Mezitas/ProyectoIngSoftware2_BancoPreguntas  
-**Video de sustentación:** [agregar URL de YouTube después de publicar]
+**Video de sustentación:** [agregar URL de YouTube]
 
 ---
 
@@ -120,9 +120,7 @@ Las historias corresponden a los requisitos funcionales del segundo corte. Sus r
 
 **Evidencia requerida:** insertar aquí una captura legible del tablero de Jira o Trello del Sprint 2, donde se vean el nombre del tablero, las tareas, su estado y, si está disponible, los responsables.
 
-> **[INSERTAR CAPTURA DEL TABLERO REAL DEL SPRINT 2]**
-
-No se incluye una captura ficticia. Antes de entregar, añadir la evidencia tomada del tablero utilizado por el equipo.
+![[Corte2_ImageJira.png]]
 
 ## 4. Escenario de calidad: escalabilidad
 
@@ -151,15 +149,28 @@ No se incluye una captura ficticia. Antes de entregar, añadir la evidencia toma
 
 ```mermaid
 flowchart LR
-    Autor[Autor / Docente]
-    Admin[Administrador]
-    Revisor[Revisor]
-    App[Aplicación de escritorio Banco de Preguntas]
-    Sistema[Plataforma Banco de Preguntas Saber Pro]
-    Autor --> App
-    Admin --> App
-    Revisor --> App
-    App -->|HTTP REST / JSON| Sistema
+    Autor["👤 Autor / Docente<br/>Crea, consulta y corrige preguntas"]
+    Admin["👤 Administrador<br/>Asigna de 1 a 3 revisores"]
+    Revisor["👤 Revisor<br/>Evalúa preguntas asignadas y deja observaciones"]
+    Cliente["🖥️ Aplicación cliente Banco de Preguntas<br/>Java Swing / Java 17<br/><br/>Interfaz de autor, administrador y revisor"]
+
+    subgraph Backend["Servicios backend — procesos independientes"]
+        Usuarios["User Service<br/>API REST :8081"]
+        Validacion["Validation Service<br/>API REST :8082"]
+        Preguntas["Question Service<br/>API REST :8083"]
+        Ciclo["Lifecycle Service<br/>API REST :8084"]
+        Revision["Review Service<br/>API REST :8085"]
+        Notificaciones["Notification Service<br/>API REST :8086"]
+    end
+
+    Autor -->|"Usa la interfaz: crea/edita/envía preguntas y consulta resultados"| Cliente
+    Admin -->|"Usa la interfaz: consulta pendientes y asigna revisores"| Cliente
+    Revisor -->|"Usa la interfaz: consulta asignaciones y registra evaluaciones"| Cliente
+
+    Cliente -->|"HTTP REST / JSON<br/>POST /auth/login"| Usuarios
+    Cliente -->|"HTTP REST / JSON<br/>/questions, /operations"| Preguntas
+    Cliente -->|"HTTP REST / JSON<br/>/reviews"| Revision
+    Cliente -->|"HTTP REST / JSON<br/>GET /notifications"| Notificaciones
 ```
 
 ### C2 — Contenedores
@@ -289,6 +300,7 @@ El README del backend enumera los patrones presentes en la solución. El siguien
 | Patrón | Categoría | Código | Aplicación |
 |---|---|---|---|
 | Builder | Creacional | `backend/question-service/src/main/java/co/edu/unicauca/question/builder/QuestionBuilder.java`, `QuestionDirector.java` | Construye un reactivo por partes y comprueba cuatro opciones y una respuesta correcta. `QuestionDirector` ofrece construcciones predefinidas. |
+| Factory Method | Creacional | `backend/validation-service/src/main/java/co/edu/unicauca/validation/templatemethod/QuestionEvaluatorCreator.java`, `MultipleChoiceEvaluatorCreator.java`, `TrueFalseEvaluatorCreator.java`, `CaseStudyEvaluatorCreator.java`, `EvaluationService.java` | La clase creadora define el método de fábrica y los creadores concretos producen el evaluador específico para cada tipo de solicitud. |
 | Adapter | Estructural | `backend/question-service/src/main/java/co/edu/unicauca/question/adapter/ExternalQuestionAdapter.java` | Convierte respuestas externas JSON o cadenas crudas al contrato `QuestionProvider` y al modelo interno. |
 | Facade | Estructural | `backend/question-service/src/main/java/co/edu/unicauca/question/facade/QuestionBankFacade.java` | Unifica operaciones del caso de uso y oculta al controlador la colaboración de servicios, repositorio, importador y decoradores. |
 | Decorator | Estructural | `backend/question-service/src/main/java/co/edu/unicauca/question/decorator/FeedbackQuestion.java`, `HighDifficultyQuestion.java`; composición en `QuestionBankFacade.java` | Añade retroalimentación o dificultad a una presentación sin modificar el componente base. |
@@ -297,9 +309,24 @@ El README del backend enumera los patrones presentes en la solución. El siguien
 
 ### Verificación de la cuota GoF
 
-El requisito solicita **al menos dos creacionales, dos estructurales y dos de comportamiento**. Los ejemplos verificables de la tabla acreditan Builder como creacional, Adapter/Facade/Decorator como estructurales y State/Template Method como de comportamiento. `QuestionEvaluatorFactory` contiene métodos estáticos que crean evaluadores; eso puede describirse como una fábrica simple, pero no se presenta aquí como Factory Method o Abstract Factory GoF. Por lo tanto, **el segundo patrón creacional no queda acreditado de manera inequívoca en el código actual**. Antes de declarar cumplimiento total, implementar un segundo patrón creacional GoF apropiado y agregar una prueba que evidencie su uso, o confirmar con el docente que la fábrica simple es aceptable.
+El requisito solicita **al menos dos creacionales, dos estructurales y dos de comportamiento**. Esta versión evidencia Builder y Factory Method como creacionales; Adapter, Facade y Decorator como estructurales; y State y Template Method como de comportamiento. El Factory Method se prueba en `backend/validation-service/src/test/java/co/edu/unicauca/validation/QuestionEvaluatorTest.java`: la prueba comprueba que cada creador produce el tipo correcto de evaluador y que se rechazan parámetros requeridos ausentes.
 
-## 7. Pruebas unitarias automatizadas
+## 7. Documentación interactiva de la API REST (Swagger/OpenAPI)
+
+Los seis microservicios incluyen `springdoc-openapi-starter-webmvc-ui` 2.6.0. Cada servicio genera documentación OpenAPI de sus controladores REST y sirve una interfaz Swagger UI independiente; no existe un API Gateway ni una especificación centralizada. La metadata (título, versión y descripción) está declarada mediante `@OpenAPIDefinition` en la clase de arranque de cada servicio.
+
+| Servicio | URL de Swagger UI | URL JSON OpenAPI |
+|---|---|---|
+| User Service | `http://localhost:8081/swagger-ui/index.html` | `http://localhost:8081/v3/api-docs` |
+| Validation Service | `http://localhost:8082/swagger-ui/index.html` | `http://localhost:8082/v3/api-docs` |
+| Question Service | `http://localhost:8083/swagger-ui/index.html` | `http://localhost:8083/v3/api-docs` |
+| Lifecycle Service | `http://localhost:8084/swagger-ui/index.html` | `http://localhost:8084/v3/api-docs` |
+| Review Service | `http://localhost:8085/swagger-ui/index.html` | `http://localhost:8085/v3/api-docs` |
+| Notification Service | `http://localhost:8086/swagger-ui/index.html` | `http://localhost:8086/v3/api-docs` |
+
+Swagger muestra endpoints HTTP; los comandos y eventos RabbitMQ son mensajes internos y no aparecen como operaciones REST. Para validar o demostrar la documentación, inicia el servicio correspondiente y abre su URL Swagger UI. La prueba de compilación confirma que la dependencia y la metadata están integradas; la URL requiere que el servicio esté en ejecución.
+
+## 8. Pruebas unitarias automatizadas
 
 Ejecutar desde `backend`:
 
@@ -314,25 +341,24 @@ Pruebas representativas:
 - `backend/question-service/src/test/java/co/edu/unicauca/question/QuestionDecoratorTest.java`: composición de presentación decorada.
 - `backend/review-service/src/test/java/co/edu/unicauca/review/ReviewServiceTest.java`: asignación, límites y resultado agregado de revisores.
 - `backend/validation-service/src/test/java/co/edu/unicauca/validation/ValidationServiceTest.java`: reglas estructurales y metadatos.
+- `backend/validation-service/src/test/java/co/edu/unicauca/validation/QuestionEvaluatorTest.java`: Factory Method crea cada evaluador y valida parámetros.
 - `backend/lifecycle-service/src/test/java/co/edu/unicauca/lifecycle/LifecycleContextTest.java`: transiciones permitidas y no permitidas.
 - `backend/user-service/src/test/java/co/edu/unicauca/user/PasswordHasherTest.java`: hash y verificación de contraseña.
 
 La existencia de pruebas no implica cobertura de cada clase de dominio y servicio. En particular, no se hallaron pruebas unitarias en `notification-service`; el cumplimiento del criterio de cobertura completa debe comprobarse con cobertura y casos adicionales, no inferirse solo por una ejecución exitosa de Maven. Adjuntar la salida real del comando o un reporte JaCoCo si está disponible.
 
-## 8. Limitaciones y asuntos pendientes
+## 9. Limitaciones y asuntos pendientes
 
-1. **Swagger/OpenAPI:** no se encontró `springdoc-openapi` ni configuración Swagger en los POM del backend. El protocolo exige mostrar la API generada por Swagger durante un minuto; agregar la dependencia, configurar y comprobar Swagger UI antes de grabar. Postman no reemplaza esa evidencia.
-2. **Segundo patrón creacional:** el código acredita Builder; la fábrica estática de evaluadores no es inequívocamente Factory Method/Abstract Factory GoF. Completar o validar este punto.
-3. **Email:** `backend/notification-service/src/main/java/co/edu/unicauca/notification/service/EmailService.java` simula el envío con una demora y un log. Las notificaciones se procesan y persisten en el sistema, pero no se envía correo real.
-4. **Escalabilidad:** el escenario define métricas objetivo, pero no se adjunta una prueba de carga ejecutada. Presentar resultados solo después de medirlos.
-5. **Tablero Sprint 2 y URLs:** falta insertar la captura auténtica del tablero y la URL del video publicado.
-6. **Persistencia de demostración:** H2 está configurada en memoria y se pierde al reiniciar. No utilizar cuentas o preguntas de demostración como datos persistentes.
-7. **Cobertura de pruebas:** revisar el alcance de pruebas contra todas las clases de dominio y servicios solicitadas por la rúbrica.
+1. **Email:** `backend/notification-service/src/main/java/co/edu/unicauca/notification/service/EmailService.java` simula el envío con una demora y un log. Las notificaciones se procesan y persisten en el sistema, pero no se envía correo real.
+2. **Escalabilidad:** el escenario define métricas objetivo, pero no se adjunta una prueba de carga ejecutada. Presentar resultados solo después de medirlos.
+3. **Tablero Sprint 2 y URLs:** falta insertar la captura auténtica del tablero y la URL del video publicado.
+4. **Persistencia de demostración:** H2 está configurada en memoria y se pierde al reiniciar. No utilizar cuentas o preguntas de demostración como datos persistentes.
+5. **Cobertura de pruebas:** revisar el alcance de pruebas contra todas las clases de dominio y servicios solicitadas por la rúbrica.
 
-## 9. URL del video de YouTube
+## 10. URL del video de YouTube
 
 **[Agregar enlace público o no listado al video final de 15 minutos.]**
 
-## 10. URL del repositorio Git
+## 11. URL del repositorio Git
 
 https://github.com/Mezitas/ProyectoIngSoftware2_BancoPreguntas

@@ -2,7 +2,7 @@
 
 **Duración objetivo: 15 minutos.** El protocolo asigna tiempos fijos a cada sección; no acelerar la reproducción ni excederlos. Todos los integrantes deben intervenir. Reemplacen los campos entre corchetes por nombres y evidencias reales antes de grabar.
 
-> **Pendientes antes de grabar:** En el código actual no se encontró configuración de Swagger/OpenAPI. El minuto 10:00–11:00 debe grabarse solo después de habilitar Swagger y comprobar que la documentación abre. Tampoco se acredita claramente el segundo patrón GoF creacional: `QuestionEvaluatorFactory` es una fábrica simple estática, no por sí sola un patrón GoF Factory Method o Abstract Factory. No afirmar cumplimiento de esos dos puntos sin implementar y validar las evidencias. El escenario de escalabilidad que sigue es una propuesta medible; no presentarlo como resultado de una prueba de carga ya ejecutada.
+> **Nota:** el escenario de escalabilidad describe metas propuestas; no presentarlas como resultados de una prueba de carga ejecutada si no se ha realizado y documentado esa medición.
 
 ## 00:00–01:00 — Historias de usuario de la iteración 2
 
@@ -34,9 +34,7 @@
 
 **En pantalla:** tabla de patrones del informe y las clases indicadas en cada fila.
 
-**Guion:** “En el código identificamos Builder para construir preguntas con sus opciones y verificar reglas; Adapter para transformar reactivos externos al modelo interno; Facade para ofrecer una entrada unificada al servicio de preguntas; Decorator para añadir dificultad o retroalimentación a una presentación; State para controlar transiciones válidas del ciclo de vida; y Template Method para compartir la estructura de evaluación entre tipos de pregunta.”
-
-**Aclaración que debe conservarse:** “La rúbrica pide dos patrones creacionales. Builder es uno; `QuestionEvaluatorFactory` contiene métodos estáticos de fábrica, pero no lo presentaremos como Factory Method sin una implementación que cumpla ese patrón. Este punto requiere completar la implementación antes de afirmar que se satisfacen los seis patrones por categoría.”
+**Guion:** “En el código identificamos dos patrones creacionales: Builder construye preguntas paso a paso y Factory Method crea el evaluador concreto según el tipo de solicitud. En los estructurales usamos Adapter para convertir reactivos externos, Facade para unificar las operaciones del banco y Decorator para enriquecer presentaciones. En los de comportamiento usamos State para controlar el ciclo de vida y Template Method para compartir el algoritmo de evaluación. En `EvaluationService` se elige el creador y cada subclase de `QuestionEvaluatorCreator` implementa su fábrica de evaluadores.”
 
 ## 06:00–07:00 — Bounded contexts
 
@@ -66,11 +64,9 @@
 
 **Presenta:** [integrante 2]
 
-**En pantalla:** abrir la URL de Swagger UI de un servicio y probar un endpoint, solo si Swagger/OpenAPI se agregó y funciona.
+**En pantalla:** abrir `http://localhost:8083/swagger-ui/index.html` (Question Service), expandir una operación REST y probarla; opcionalmente mostrar `http://localhost:8083/v3/api-docs` para el JSON OpenAPI. Los otros servicios publican la misma interfaz en su propio puerto, de `8081` a `8086`.
 
-**Guion:** “Esta interfaz OpenAPI documenta los recursos y contratos REST del servicio. Aquí ejecutamos una solicitud de ejemplo y observamos su respuesta.”
-
-**No grabar esta sección como si estuviera implementada mientras no exista Swagger.** En el estado actual no se encontró `springdoc-openapi` en los POM; Postman permite probar la API, pero no sustituye el requisito de mostrar Swagger.
+**Guion:** “Cada microservicio integra springdoc-openapi y publica su propia especificación OpenAPI y Swagger UI. Aquí vemos los endpoints y contratos del Question Service y ejecutamos una solicitud de ejemplo. No existe un API Gateway ni una documentación centralizada; cada servicio documenta su API REST.”
 
 ## 10:00–15:00 — Software funcionando y evidencia de código
 
@@ -90,7 +86,7 @@
 
 - Reemplazar nombres, distribuir la participación y ensayar para mantener los 15 minutos.
 - Capturar el tablero real del Sprint 2 y comprobar que se ve la contribución de todos.
-- Completar y verificar Swagger/OpenAPI; no reemplazarlo por Postman.
-- Resolver el segundo patrón creacional requerido o indicar explícitamente que falta.
+- Iniciar los servicios que se mostrarán y verificar que Swagger UI y `/v3/api-docs` respondan.
+- Mostrar Factory Method en `QuestionEvaluatorCreator` y sus creadores concretos; ejecutar su prueba unitaria.
 - Preparar servicios, RabbitMQ y usuarios; las bases H2 de ejemplo se reinician en memoria.
 - Completar el URL público de YouTube en el informe después de publicar el video.
