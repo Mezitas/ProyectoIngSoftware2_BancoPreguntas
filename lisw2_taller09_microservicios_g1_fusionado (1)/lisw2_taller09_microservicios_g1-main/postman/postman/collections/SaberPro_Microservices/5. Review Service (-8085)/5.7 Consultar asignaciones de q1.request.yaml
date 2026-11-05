@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{review_service_url}}/reviews/question/{{question_id}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('1 asignación CONFIRMED', function () { var a = pm.response.json(); pm.expect(a.length).to.eql(1); pm.expect(a[0].status).to.eql('CONFIRMED'); });
+    language: text/javascript
+order: 7000

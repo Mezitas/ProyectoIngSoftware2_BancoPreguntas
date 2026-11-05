@@ -1,0 +1,13 @@
+# Use this workspace to collaborate
+workspace:
+  id: 94d06470-f9e0-406c-8816-440d836791fe
+
+cloudResources:
+  collections:
+    ../postman/collections/SaberPro_Microservices: 085933cf-f7fa-4009-9984-2b65444e5f96
+
+# All resources in the `postman/` folder are automatically registered in Local View.
+# Point to additional files outside the `postman/` folder to register them individually. Example:
+#localResources:
+#  collections:
+#    - ../tests/E2E Test Collection/

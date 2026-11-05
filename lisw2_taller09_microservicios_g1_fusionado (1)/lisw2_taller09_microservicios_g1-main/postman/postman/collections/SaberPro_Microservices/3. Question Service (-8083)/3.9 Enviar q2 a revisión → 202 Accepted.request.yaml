@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{question_service_url}}/questions/{{question2_id}}/submit"
+method: POST
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 202', function () { pm.response.to.have.status(202); });
+      pm.test('operationId presente', function () { pm.expect(pm.response.json().operationId).to.be.a('string'); });
+      pm.collectionVariables.set('operation2_id', pm.response.json().operationId);
+    language: text/javascript
+order: 9000

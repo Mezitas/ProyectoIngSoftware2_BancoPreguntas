@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{lifecycle_service_url}}/lifecycle/{{question_id}}/history"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('al menos 2 entradas', function () { var h = pm.response.json(); pm.expect(h.length).to.be.at.least(2); pm.expect(h[h.length-1].to).to.eql('PENDING_REVIEW'); });
+    language: text/javascript
+order: 2000

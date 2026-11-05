@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{review_service_url}}/reviews/assign"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "questionId": {{question_id}},
+      "reviewerId": {{reviewer_id}},
+      "assignedBy": {{admin_id}}
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', function () { pm.response.to.have.status(201); });
+      pm.test('CONFIRMED y notificación encolada', function () { var a = pm.response.json(); pm.expect(a.status).to.eql('CONFIRMED'); pm.expect(a.notification).to.eql('QUEUED'); });
+    language: text/javascript
+order: 4000

@@ -1,74 +1,54 @@
-# Banco de Preguntas Saber Pro — Primer corte
+# Frontend
 
-Aplicación de escritorio Java 17 con Swing, monolito en tres capas (presentación, negocio y datos) y micro-patrón MVC. Incluye autenticación local con roles, preguntas Saber Pro, revisión y persistencia SQLite.
+La carpeta `frontend` contiene una aplicación de escritorio Java 17 con Swing. No es una página web: no usa navegador, Node.js, Vite ni un servidor para entregar la interfaz. El cliente se ejecuta como proceso independiente y consume las APIs REST de los microservicios mediante `java.net.http.HttpClient`; no importa clases ni comparte base de datos con el backend. Al ser una aplicación de escritorio, no requiere configuración CORS.
 
-## Ejecutar y probar
+## Ejecución en Windows
 
-Se incluye Maven Wrapper para Windows y sistemas Unix. Se necesita Java 17 o posterior; no hace falta instalar Maven:
+Con JDK 17+ y Maven 3.8+:
 
 ```powershell
-.\mvnw.cmd clean test
-.\mvnw.cmd exec:java
+cd frontend
+mvn.cmd clean package
+java -jar target\banco-preguntas-desktop.jar
 ```
 
-En Unix/macOS: `sh ./mvnw clean test` y `sh ./mvnw exec:java`.
+También se puede iniciar directamente desde `frontend` con `mvn.cmd exec:java`. La primera compilación descarga Jackson y el plugin de empaquetado. El JAR generado incluye sus dependencias.
 
-En Java 24 o posterior, el Maven Wrapper habilita el acceso nativo requerido por SQLite y evita la advertencia de carga JNI. Si se ejecuta `App` directamente desde un IDE, añadir `--enable-native-access=ALL-UNNAMED` a las opciones de la máquina virtual. La dependencia `slf4j-nop` configura el backend silencioso que usa SQLite y evita el aviso de que falta un proveedor SLF4J.
+Por defecto, el cliente se conecta a `localhost` en los puertos del ejemplo. Si los servicios usan otras direcciones, se pueden configurar antes de iniciar la aplicación:
 
-La base `data/banco-preguntas.db` y sus tablas se crean al iniciar la aplicación. Se excluye del control de versiones. Los usuarios de demostración y dos preguntas de ejemplo se inicializan si corresponde; la información creada por usuarios permanece en SQLite al cerrar la aplicación.
-
-## Cuentas de demostración
-
-Las cuentas se almacenan con contraseñas derivadas mediante PBKDF2, no en texto plano. Estas credenciales son únicamente para desarrollo y sustentación; deben cambiarse antes de cualquier uso real.
-
-| Rol | Correo | Contraseña |
-|---|---|---|
-| Autor | `ana@bancopreguntas.local` | `Autor123!` |
-| Administrador | `admin@bancopreguntas.local` | `Admin123!` |
-| Revisor | `juan@bancopreguntas.local` | `Revisor123!` |
-| Revisor | `pablo@bancopreguntas.local` | `Revisor123!` |
-
-El login permite cerrar sesión y entrar con otra cuenta. Las pestañas y las operaciones disponibles dependen del rol autenticado.
-
-## Historias funcionales
-
-| HU | Funcionalidad | Implementación |
-|---|---|---|
-| HU01 | Crear preguntas de selección múltiple con contexto, pregunta, cuatro distractores, respuesta, justificación, bibliografía, competencia, tema, subtema y dificultad. Validación estructural al guardar. | `PanelCrearPregunta`, `PreguntaServiceImpl`, `ValidadorEstructuralPregunta` |
-| HU02 | Cambiar preguntas propias de borrador a pendientes de revisión y visualizar estados con colores. | `PanelListarPreguntas`, `PreguntaServiceImpl`, `EstadoBadgeRenderer` |
-| HU03 | Consultar preguntas propias con filtros y paginación, ver todos sus campos y editar borradores o preguntas rechazadas. Al corregir una rechazada, vuelve a borrador. | `PanelListarPreguntas`, `PanelCrearPregunta`, `FiltroPregunta`, `ResultadoPaginado` |
-| HU04 | El administrador asigna uno o más revisores a preguntas pendientes. La asignación cambia el estado a “En revisión”; cada revisor ve en su pestaña las preguntas asignadas y puede aprobarlas o rechazarlas. | `PanelAsignarRevisores`, `PanelMisRevisiones`, `PreguntaServiceImpl` |
-
-Los cambios de creación, edición, estado, asignación y decisión de revisión se registran en la tabla SQLite `auditoria` con actor, pregunta, acción, detalle y fecha.
-No se envía correo: la asignación se comunica al revisor mediante su pestaña de preguntas asignadas.
-La gráfica del autor distingue borradores, preguntas en revisión, aprobadas, rechazadas y eliminadas; cada categoría tiene un color de alto contraste y su conteo se muestra en la leyenda.
-El servicio de conteo ofrece sobrecargas para recibir el usuario autenticado o el id del autor, manteniendo compatibilidad con ambos tipos de cliente.
-
-## Reglas por rol
-
-- **Autor:** crea preguntas en su propio nombre; lista y edita únicamente las propias. Puede editar solo en estado Borrador o Rechazada. Al editar una pregunta rechazada, vuelve a Borrador. Solo puede enviar borradores a revisión y eliminar borradores o preguntas rechazadas.
-- **Administrador:** consulta pendientes y asigna revisores existentes. El negocio verifica el rol de administrador y que cada usuario asignado tenga rol Revisor. La asignación mueve la pregunta a En revisión.
-- **Revisor:** consulta únicamente preguntas asignadas a su usuario y puede tomar una decisión una vez: Aprobar o Rechazar.
-
-Las reglas se validan en la capa de negocio y no dependen solamente de ocultar pestañas en Swing. En este corte la autenticación valida cuentas locales con credenciales de demostración; no reemplaza un sistema de identidad para producción.
-Los métodos de servicio que consultan pendientes requieren recibir el usuario administrador autenticado; la sobrecarga antigua sin actor se conserva únicamente por compatibilidad y falla de forma segura.
-
-## Arquitectura y diseño
-
-```text
-com.bancopreguntas
-├── ui/             Presentación Swing: vistas y PreguntaController (MVC)
-├── service/        Reglas de negocio, autenticación y hash de contraseñas
-├── domain/         Pregunta, Usuario, roles y estados
-├── validacion/     Validación estructural intercambiable (Strategy)
-├── repository/     Interfaces y adaptadores SQLite
-└── notificacion/   Observers para cambios/asignaciones
+```powershell
+$env:BANCO_API_USERS_URL = "http://localhost:8081"
+$env:BANCO_API_QUESTIONS_URL = "http://localhost:8083"
+$env:BANCO_API_REVIEWS_URL = "http://localhost:8085"
+$env:BANCO_API_NOTIFICATIONS_URL = "http://localhost:8086"
+java -jar target\banco-preguntas-desktop.jar
 ```
 
-La composición de dependencias se realiza en `App`. `PreguntaRepositorySQLite`, `UsuarioRepositorySQLite` y `RepositorioAuditoriaSQLite` encapsulan el acceso a SQLite mediante JDBC y sentencias preparadas. La capa de negocio depende de interfaces de repositorio (DIP), y la factoría de conexiones/esquema `SQLiteDatabase` centraliza la inicialización de la base. Se mantienen Builder, Strategy y Observer; `Pregunta.Builder` admite reconstruir preguntas con sus fechas e ids para preservar los datos leídos de SQLite.
+**Importante:** `docker compose up -d` por sí solo no inicia el backend REST; el `docker-compose.yml` del ejemplo únicamente crea RabbitMQ. Si puedes iniciar sesión pero no cargar preguntas, el servicio de usuarios responde, pero revisa que `question-service` también esté iniciado.
 
-La base implementa las tablas `usuarios`, `preguntas`, `pregunta_distractores`, `pregunta_revisores` y `auditoria`. Las opciones y asignaciones están normalizadas y enlazadas con claves foráneas.
+Para arrancar el backend en Windows, desde la raíz del repositorio ejecuta:
 
-## Pruebas
+```powershell
+$backend = Resolve-Path ".\lisw2_taller09_microservicios_g1_fusionado (1)\lisw2_taller09_microservicios_g1-main"
+Set-Location $backend
+docker compose up -d
+.\start-all.bat
+```
 
-`.\mvnw.cmd test` ejecuta pruebas unitarias de dominio, validación, reglas por rol, edición, flujo de revisión, autenticación y persistencia SQLite en una base temporal.
+El script abre una terminal por microservicio; mantenlas abiertas y espera a que Maven termine de iniciar. RabbitMQ en `http://localhost:15672` no es el backend de la aplicación. Verifica las APIs REST en `http://localhost:8081`, `http://localhost:8083`, `http://localhost:8085` y `http://localhost:8086`. La aplicación debe iniciarse en la misma máquina o configurarse con las variables de entorno si los servicios están en otra dirección.
+
+La pantalla de inicio de sesión autentica contra `POST /auth/login`. Según los roles devueltos por el servicio, muestra las funciones de autor (`DOCENTE`/`AUTOR`), administrador (`ADMIN`) y revisor (`REVISOR`), además de notificaciones. Incluye creación y edición de preguntas con contexto, enunciado, cuatro opciones, respuesta, justificación, bibliografía, competencia, tema, subtema y dificultad; estados visualizados con colores; envío a revisión; listado con búsqueda, filtros y paginación; asignación de revisores; evaluación con aprobación/rechazo y observaciones; consulta de notificaciones.
+
+Las llamadas REST se distribuyen directamente entre usuarios (`/auth/login`, puerto 8081), preguntas y operaciones asíncronas (puerto 8083), revisiones y asignaciones (puerto 8085) y notificaciones (puerto 8086). Validación y ciclo de vida son invocados por los servicios backend durante sus flujos; la aplicación de escritorio no se conecta a sus bases de datos.
+
+El backend ahora devuelve el estado consultado al servicio de ciclo de vida en el listado, persiste bibliografía y dificultad, ofrece consultas de asignaciones por revisor y evaluaciones con sus observaciones, admite de uno a tres revisores y notifica el resultado final a los implicados. La búsqueda y paginación del listado de la aplicación de escritorio se aplican localmente sobre las preguntas devueltas por la API.
+
+La Figura 1 también presenta los contextos de simulacros, seguimiento académico y trazabilidad. No hacen parte de los seis microservicios de referencia ni de sus APIs disponibles, así que no se exponen como funciones en esta interfaz.
+
+# Backend
+
+El backend de referencia está en `lisw2_taller09_microservicios_g1_fusionado (1)\lisw2_taller09_microservicios_g1-main`; incluye los seis servicios Java/Spring Boot separados para usuarios (8081), validación (8082), preguntas (8083), ciclo de vida (8084), revisión (8085) y notificaciones (8086). El frontend no inicia ni administra estos servicios: deben estar activos y accesibles para poder iniciar sesión y usar las funciones correspondientes.
+
+Consulta el README de esa carpeta para los requisitos y comandos de ejecución. En particular, inicia RabbitMQ con `docker compose up -d` desde esa carpeta y luego levanta los seis servicios; en Windows el ejemplo incluye `start-all.bat`. Las credenciales incluidas son `docente1 / Docente123*`, `admin1 / Admin123*` y `revisor1` o `revisor2 / Revisor123*`.
+
+La separación es física en procesos y lógica en código: el cliente Java realiza llamadas HTTP a las APIs REST; los microservicios conservan la lógica de negocio, persistencia, validación y mensajería. No es necesario instalar o ejecutar un servidor frontend. Sí se necesita ejecutar el backend (y RabbitMQ para sus operaciones asíncronas) en una máquina accesible desde la aplicación.

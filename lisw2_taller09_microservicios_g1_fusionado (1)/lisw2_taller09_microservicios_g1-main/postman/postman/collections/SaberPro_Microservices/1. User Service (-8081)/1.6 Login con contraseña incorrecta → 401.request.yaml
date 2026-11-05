@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{user_service_url}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "docente1",
+      "password": "incorrecta"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 401', function () { pm.response.to.have.status(401); });
+      pm.test('authenticated = false', function () { pm.expect(pm.response.json().authenticated).to.eql(false); });
+    language: text/javascript
+order: 6000

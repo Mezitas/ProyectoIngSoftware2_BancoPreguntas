@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{review_service_url}}/reviews/result"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "questionId": {{question2_id}},
+      "reviewerId": {{reviewer2_id}},
+      "result": "APPROVED",
+      "comments": "Cumple los criterios."
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('APPROVED', function () { pm.expect(pm.response.json().questionStatus).to.eql('APPROVED'); });
+    language: text/javascript
+order: 12000

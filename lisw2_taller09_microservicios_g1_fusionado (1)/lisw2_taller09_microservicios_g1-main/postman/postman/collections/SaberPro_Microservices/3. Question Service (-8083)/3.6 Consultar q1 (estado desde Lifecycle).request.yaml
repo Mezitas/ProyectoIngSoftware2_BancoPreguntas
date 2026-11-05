@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{question_service_url}}/questions/{{question_id}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('DRAFT', function () { pm.expect(pm.response.json().status).to.eql('DRAFT'); });
+    language: text/javascript
+order: 6000

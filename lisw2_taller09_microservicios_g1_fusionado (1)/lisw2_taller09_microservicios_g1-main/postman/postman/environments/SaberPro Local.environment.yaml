@@ -1,0 +1,14 @@
+name: SaberPro Local
+values:
+  - key: user_service_url
+    value: 'http://localhost:8081'
+  - key: validation_service_url
+    value: 'http://localhost:8082'
+  - key: question_service_url
+    value: 'http://localhost:8083'
+  - key: lifecycle_service_url
+    value: 'http://localhost:8084'
+  - key: review_service_url
+    value: 'http://localhost:8085'
+  - key: notification_service_url
+    value: 'http://localhost:8086'

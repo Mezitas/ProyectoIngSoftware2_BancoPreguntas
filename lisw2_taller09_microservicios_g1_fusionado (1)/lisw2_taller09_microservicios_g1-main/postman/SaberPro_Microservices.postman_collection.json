@@ -1,0 +1,2161 @@
+{
+  "info": {
+    "_postman_id": "8558446a-ecb8-4a3d-ab06-e06526a1a9d7",
+    "name": "SaberPro_Microservices",
+    "description": "Taller 09 - Comunicación síncrona (REST) y asíncrona (RabbitMQ). Ejecutar con Collection Runner en orden (carpetas 1 a 8) con RabbitMQ y los 6 servicios arriba.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. User Service (:8081)",
+      "item": [
+        {
+          "name": "1.1 Login docente (válido)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{user_service_url}}/auth/login",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"docente1\",\n  \"password\": \"Docente123*\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('authenticated = true', function () { pm.expect(pm.response.json().authenticated).to.eql(true); });",
+                  "pm.test('incluye datos y roles', function () { var u = pm.response.json().user; pm.expect(u.roles.length).to.be.above(0); });",
+                  "pm.collectionVariables.set('docente_id', pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 Login administrador (válido)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{user_service_url}}/auth/login",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"Admin123*\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('authenticated = true', function () { pm.expect(pm.response.json().authenticated).to.eql(true); });",
+                  "pm.test('incluye datos y roles', function () { var u = pm.response.json().user; pm.expect(u.roles.length).to.be.above(0); });",
+                  "pm.collectionVariables.set('admin_id', pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 Login revisor 1 (válido)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{user_service_url}}/auth/login",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"revisor1\",\n  \"password\": \"Revisor123*\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('authenticated = true', function () { pm.expect(pm.response.json().authenticated).to.eql(true); });",
+                  "pm.test('incluye datos y roles', function () { var u = pm.response.json().user; pm.expect(u.roles.length).to.be.above(0); });",
+                  "pm.collectionVariables.set('reviewer_id', pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 Login revisor 2 (válido)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{user_service_url}}/auth/login",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"revisor2\",\n  \"password\": \"Revisor123*\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('authenticated = true', function () { pm.expect(pm.response.json().authenticated).to.eql(true); });",
+                  "pm.test('incluye datos y roles', function () { var u = pm.response.json().user; pm.expect(u.roles.length).to.be.above(0); });",
+                  "pm.collectionVariables.set('reviewer2_id', pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.5 Login estudiante (válido)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{user_service_url}}/auth/login",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"estudiante1\",\n  \"password\": \"Estudiante123*\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('authenticated = true', function () { pm.expect(pm.response.json().authenticated).to.eql(true); });",
+                  "pm.test('incluye datos y roles', function () { var u = pm.response.json().user; pm.expect(u.roles.length).to.be.above(0); });",
+                  "pm.collectionVariables.set('student_id', pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.6 Login con contraseña incorrecta → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{user_service_url}}/auth/login",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"docente1\",\n  \"password\": \"incorrecta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('authenticated = false', function () { pm.expect(pm.response.json().authenticated).to.eql(false); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.7 Login con usuario inexistente → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{user_service_url}}/auth/login",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"no_existe\",\n  \"password\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('authenticated = false', function () { pm.expect(pm.response.json().authenticated).to.eql(false); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.8 Login sin contraseña (body inválido) → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{user_service_url}}/auth/login",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"docente1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.9 Consultar usuario por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_service_url}}/users/{{docente_id}}",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "users",
+                "{{docente_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('rol DOCENTE', function () { pm.expect(pm.response.json().roles).to.include('DOCENTE'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.10 Consultar usuario inexistente → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_service_url}}/users/9999",
+              "host": [
+                "{{user_service_url}}"
+              ],
+              "path": [
+                "users",
+                "9999"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Validation Service (:8082)",
+      "item": [
+        {
+          "name": "2.1 Validar pregunta correcta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{validation_service_url}}/validate",
+              "host": [
+                "{{validation_service_url}}"
+              ],
+              "path": [
+                "validate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": \"Un arreglo ordenado de n elementos se consulta repetidamente.\",\n  \"statement\": \"¿Cuál es la complejidad temporal de la búsqueda binaria?\",\n  \"options\": [\n    {\n      \"label\": \"A\",\n      \"text\": \"O(n)\"\n    },\n    {\n      \"label\": \"B\",\n      \"text\": \"O(log n)\"\n    },\n    {\n      \"label\": \"C\",\n      \"text\": \"O(n log n)\"\n    },\n    {\n      \"label\": \"D\",\n      \"text\": \"O(1)\"\n    }\n  ],\n  \"correctOption\": \"B\",\n  \"justification\": \"La búsqueda binaria descarta la mitad del espacio en cada paso.\",\n  \"competency\": \"Razonamiento cuantitativo\",\n  \"topic\": \"Algoritmos\",\n  \"subtopic\": \"Búsqueda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('valid = true', function () { pm.expect(pm.response.json().valid).to.eql(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 Validar pregunta inválida (3 opciones, sin correcta)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{validation_service_url}}/validate",
+              "host": [
+                "{{validation_service_url}}"
+              ],
+              "path": [
+                "validate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": \"Un arreglo ordenado de n elementos se consulta repetidamente.\",\n  \"statement\": \"¿Cuál es la complejidad temporal de la búsqueda binaria?\",\n  \"options\": [\n    {\n      \"label\": \"A\",\n      \"text\": \"O(n)\"\n    },\n    {\n      \"label\": \"B\",\n      \"text\": \"O(log n)\"\n    },\n    {\n      \"label\": \"C\",\n      \"text\": \"O(n log n)\"\n    }\n  ],\n  \"correctOption\": \"\",\n  \"justification\": \"La búsqueda binaria descarta la mitad del espacio en cada paso.\",\n  \"competency\": \"Razonamiento cuantitativo\",\n  \"topic\": \"Algoritmos\",\n  \"subtopic\": \"Búsqueda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('valid = false y errores informados', function () { var r = pm.response.json(); pm.expect(r.valid).to.eql(false); pm.expect(r.errors.length).to.be.above(0); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Question Service (:8083)",
+      "item": [
+        {
+          "name": "3.1 Crear pregunta válida (q1) → 201 DRAFT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{question_service_url}}/questions",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorId\": {{docente_id}},\n  \"context\": \"Un arreglo ordenado de n elementos se consulta repetidamente.\",\n  \"statement\": \"¿Cuál es la complejidad temporal de la búsqueda binaria?\",\n  \"options\": [\n    {\n      \"label\": \"A\",\n      \"text\": \"O(n)\"\n    },\n    {\n      \"label\": \"B\",\n      \"text\": \"O(log n)\"\n    },\n    {\n      \"label\": \"C\",\n      \"text\": \"O(n log n)\"\n    },\n    {\n      \"label\": \"D\",\n      \"text\": \"O(1)\"\n    }\n  ],\n  \"correctOption\": \"B\",\n  \"justification\": \"La búsqueda binaria descarta la mitad del espacio en cada paso.\",\n  \"competency\": \"Razonamiento cuantitativo\",\n  \"topic\": \"Algoritmos\",\n  \"subtopic\": \"Búsqueda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('estado DRAFT', function () { pm.expect(pm.response.json().status).to.eql('DRAFT'); });",
+                  "pm.collectionVariables.set('question_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2 Crear pregunta válida (q2) → 201 DRAFT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{question_service_url}}/questions",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorId\": {{docente_id}},\n  \"context\": \"Un arreglo ordenado de n elementos se consulta repetidamente. (q2)\",\n  \"statement\": \"¿Qué estructura de datos usa LIFO?\",\n  \"options\": [\n    {\n      \"label\": \"A\",\n      \"text\": \"O(n)\"\n    },\n    {\n      \"label\": \"B\",\n      \"text\": \"O(log n)\"\n    },\n    {\n      \"label\": \"C\",\n      \"text\": \"O(n log n)\"\n    },\n    {\n      \"label\": \"D\",\n      \"text\": \"O(1)\"\n    }\n  ],\n  \"correctOption\": \"B\",\n  \"justification\": \"La búsqueda binaria descarta la mitad del espacio en cada paso.\",\n  \"competency\": \"Razonamiento cuantitativo\",\n  \"topic\": \"Algoritmos\",\n  \"subtopic\": \"Búsqueda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('estado DRAFT', function () { pm.expect(pm.response.json().status).to.eql('DRAFT'); });",
+                  "pm.collectionVariables.set('question2_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3 Crear pregunta válida (q3, se queda en DRAFT)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{question_service_url}}/questions",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorId\": {{docente_id}},\n  \"context\": \"Un arreglo ordenado de n elementos se consulta repetidamente. (q3)\",\n  \"statement\": \"¿Qué protocolo es orientado a conexión?\",\n  \"options\": [\n    {\n      \"label\": \"A\",\n      \"text\": \"O(n)\"\n    },\n    {\n      \"label\": \"B\",\n      \"text\": \"O(log n)\"\n    },\n    {\n      \"label\": \"C\",\n      \"text\": \"O(n log n)\"\n    },\n    {\n      \"label\": \"D\",\n      \"text\": \"O(1)\"\n    }\n  ],\n  \"correctOption\": \"B\",\n  \"justification\": \"La búsqueda binaria descarta la mitad del espacio en cada paso.\",\n  \"competency\": \"Razonamiento cuantitativo\",\n  \"topic\": \"Algoritmos\",\n  \"subtopic\": \"Búsqueda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('estado DRAFT', function () { pm.expect(pm.response.json().status).to.eql('DRAFT'); });",
+                  "pm.collectionVariables.set('question3_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.4 Crear pregunta inválida → 400 con errores",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{question_service_url}}/questions",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorId\": {{docente_id}},\n  \"context\": \"Un arreglo ordenado de n elementos se consulta repetidamente.\",\n  \"statement\": \"¿Cuál es la complejidad temporal de la búsqueda binaria?\",\n  \"options\": [\n    {\n      \"label\": \"A\",\n      \"text\": \"O(n)\"\n    },\n    {\n      \"label\": \"B\",\n      \"text\": \"O(log n)\"\n    },\n    {\n      \"label\": \"C\",\n      \"text\": \"O(n log n)\"\n    }\n  ],\n  \"correctOption\": null,\n  \"justification\": \"La búsqueda binaria descarta la mitad del espacio en cada paso.\",\n  \"competency\": \"Razonamiento cuantitativo\",\n  \"topic\": \"Algoritmos\",\n  \"subtopic\": \"Búsqueda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('lista de errores', function () { pm.expect(pm.response.json().errors.length).to.be.above(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.5 Crear con un usuario sin rol de autor (estudiante) → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{question_service_url}}/questions",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorId\": {{student_id}},\n  \"context\": \"Un arreglo ordenado de n elementos se consulta repetidamente.\",\n  \"statement\": \"¿Cuál es la complejidad temporal de la búsqueda binaria?\",\n  \"options\": [\n    {\n      \"label\": \"A\",\n      \"text\": \"O(n)\"\n    },\n    {\n      \"label\": \"B\",\n      \"text\": \"O(log n)\"\n    },\n    {\n      \"label\": \"C\",\n      \"text\": \"O(n log n)\"\n    },\n    {\n      \"label\": \"D\",\n      \"text\": \"O(1)\"\n    }\n  ],\n  \"correctOption\": \"B\",\n  \"justification\": \"La búsqueda binaria descarta la mitad del espacio en cada paso.\",\n  \"competency\": \"Razonamiento cuantitativo\",\n  \"topic\": \"Algoritmos\",\n  \"subtopic\": \"Búsqueda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.6 Consultar q1 (estado desde Lifecycle)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/questions/{{question_id}}",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions",
+                "{{question_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('DRAFT', function () { pm.expect(pm.response.json().status).to.eql('DRAFT'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.7 Enviar q1 a revisión → 202 Accepted",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{question_service_url}}/questions/{{question_id}}/submit",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions",
+                "{{question_id}}",
+                "submit"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestedBy\": {{docente_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 202', function () { pm.response.to.have.status(202); });",
+                  "pm.test('operationId presente', function () { pm.expect(pm.response.json().operationId).to.be.a('string'); });",
+                  "pm.collectionVariables.set('operation_id', pm.response.json().operationId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.8 Consultar operación de q1 → COMPLETED",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/operations/{{operation_id}}",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "operations",
+                "{{operation_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Espera 2000 ms para dar tiempo al procesamiento asíncrono (RabbitMQ)",
+                  "setTimeout(function () {}, 2000);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('COMPLETED', function () { pm.expect(pm.response.json().status).to.eql('COMPLETED'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.9 Enviar q2 a revisión → 202 Accepted",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/questions/{{question2_id}}/submit",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions",
+                "{{question2_id}}",
+                "submit"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 202', function () { pm.response.to.have.status(202); });",
+                  "pm.test('operationId presente', function () { pm.expect(pm.response.json().operationId).to.be.a('string'); });",
+                  "pm.collectionVariables.set('operation2_id', pm.response.json().operationId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.10 Reenviar q1 (ya está en PENDING_REVIEW) → 202",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/questions/{{question_id}}/submit",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions",
+                "{{question_id}}",
+                "submit"
+              ]
+            },
+            "description": "Se acepta la solicitud (202) pero el procesamiento asíncrono debe fallar."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 202', function () { pm.response.to.have.status(202); });",
+                  "pm.test('operationId presente', function () { pm.expect(pm.response.json().operationId).to.be.a('string'); });",
+                  "pm.collectionVariables.set('operation_fail_id', pm.response.json().operationId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.11 Consultar operación fallida → FAILED (no se informa éxito falso)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/operations/{{operation_fail_id}}",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "operations",
+                "{{operation_fail_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Espera 2000 ms para dar tiempo al procesamiento asíncrono (RabbitMQ)",
+                  "setTimeout(function () {}, 2000);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('FAILED con motivo', function () { var r = pm.response.json(); pm.expect(r.status).to.eql('FAILED'); pm.expect(r.message).to.include('no permitida'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.12 Consultar q1 → PENDING_REVIEW",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/questions/{{question_id}}",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions",
+                "{{question_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('PENDING_REVIEW', function () { pm.expect(pm.response.json().status).to.eql('PENDING_REVIEW'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.13 Consultar operación inexistente → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/operations/no-existe",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "operations",
+                "no-existe"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Lifecycle Service (:8084)",
+      "item": [
+        {
+          "name": "4.1 Estado de q1 → PENDING_REVIEW",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/{{question_id}}",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "{{question_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('PENDING_REVIEW', function () { pm.expect(pm.response.json().status).to.eql('PENDING_REVIEW'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.2 Historial de q1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/{{question_id}}/history",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "{{question_id}}",
+                "history"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('al menos 2 entradas', function () { var h = pm.response.json(); pm.expect(h.length).to.be.at.least(2); pm.expect(h[h.length-1].to).to.eql('PENDING_REVIEW'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.3 Resultado asíncrono registrado en Lifecycle",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/operations/{{operation_fail_id}}",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "operations",
+                "{{operation_fail_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('FAILED', function () { pm.expect(pm.response.json().status).to.eql('FAILED'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.4 Aprobar una pregunta en DRAFT (q3) → 409 rechazada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/{{question3_id}}/transition",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "{{question3_id}}",
+                "transition"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetState\": \"APPROVED\",\n  \"requestedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });",
+                  "pm.test('mensaje de transición no permitida', function () { pm.expect(pm.response.json().message).to.include('no permitida'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.5 Saltar a PUBLISHED desde DRAFT (q3) → 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/{{question3_id}}/transition",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "{{question3_id}}",
+                "transition"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetState\": \"PUBLISHED\",\n  \"requestedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.6 Rechazar sin motivo → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/{{question_id}}/transition",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "{{question_id}}",
+                "transition"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetState\": \"REJECTED\",\n  \"requestedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.7 Estado de una pregunta inexistente → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/99999",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "99999"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Review Service (:8085)",
+      "item": [
+        {
+          "name": "5.1 Asignar con un usuario que no es administrador → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/assign",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "assign"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": {{question_id}},\n  \"reviewerId\": {{reviewer_id}},\n  \"assignedBy\": {{docente_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.2 Asignar a un usuario sin rol REVISOR → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/assign",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "assign"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": {{question_id}},\n  \"reviewerId\": {{docente_id}},\n  \"assignedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 422', function () { pm.response.to.have.status(422); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.3 Asignar a una pregunta en DRAFT (q3) → 409 no elegible",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/assign",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "assign"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": {{question3_id}},\n  \"reviewerId\": {{reviewer_id}},\n  \"assignedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.4 Asignar revisor 1 a q1 → 201 CONFIRMED",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/assign",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "assign"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": {{question_id}},\n  \"reviewerId\": {{reviewer_id}},\n  \"assignedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('CONFIRMED y notificación encolada', function () { var a = pm.response.json(); pm.expect(a.status).to.eql('CONFIRMED'); pm.expect(a.notification).to.eql('QUEUED'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.5 Verificar q1 → IN_REVIEW (Lifecycle confirmó)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/{{question_id}}",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "{{question_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('IN_REVIEW', function () { pm.expect(pm.response.json().status).to.eql('IN_REVIEW'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.6 Asignar de nuevo a q1 → 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/assign",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "assign"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": {{question_id}},\n  \"reviewerId\": {{reviewer2_id}},\n  \"assignedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.7 Consultar asignaciones de q1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/question/{{question_id}}",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "question",
+                "{{question_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('1 asignación CONFIRMED', function () { var a = pm.response.json(); pm.expect(a.length).to.eql(1); pm.expect(a[0].status).to.eql('CONFIRMED'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.8 Rechazar q1 sin motivo → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/result",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "result"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": {{question_id}},\n  \"reviewerId\": {{reviewer_id}},\n  \"result\": \"REJECTED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.9 Rechazar q1 con motivo → 200 REJECTED",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/result",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "result"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": {{question_id}},\n  \"reviewerId\": {{reviewer_id}},\n  \"result\": \"REJECTED\",\n  \"comments\": \"El distractor C es ambiguo; reescribir.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('REJECTED', function () { pm.expect(pm.response.json().questionStatus).to.eql('REJECTED'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.10 Verificar q1 → REJECTED con motivo registrado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/{{question_id}}",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "{{question_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('REJECTED + motivo', function () { var s = pm.response.json(); pm.expect(s.status).to.eql('REJECTED'); pm.expect(s.comment).to.include('ambiguo'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.11 Asignar revisor 2 a q2 → 201 CONFIRMED",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/assign",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "assign"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": {{question2_id}},\n  \"reviewerId\": {{reviewer2_id}},\n  \"assignedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.12 Aprobar q2 → 200 APPROVED",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_url}}/reviews/result",
+              "host": [
+                "{{review_service_url}}"
+              ],
+              "path": [
+                "reviews",
+                "result"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": {{question2_id}},\n  \"reviewerId\": {{reviewer2_id}},\n  \"result\": \"APPROVED\",\n  \"comments\": \"Cumple los criterios.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('APPROVED', function () { pm.expect(pm.response.json().questionStatus).to.eql('APPROVED'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Notification Service (:8086)",
+      "item": [
+        {
+          "name": "6.1 Notificaciones del revisor 1 → asignación notificada",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{notification_service_url}}/notifications?recipientId={{reviewer_id}}",
+              "host": [
+                "{{notification_service_url}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "recipientId",
+                  "value": "{{reviewer_id}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Espera 3000 ms para dar tiempo al procesamiento asíncrono (RabbitMQ)",
+                  "setTimeout(function () {}, 3000);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('al menos una notificación SENT', function () { var n = pm.response.json(); pm.expect(n.length).to.be.at.least(1); pm.expect(n[0].status).to.eql('SENT'); pm.expect(n[0].type).to.eql('REVIEWER_ASSIGNED'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.2 Todas las notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{notification_service_url}}/notifications",
+              "host": [
+                "{{notification_service_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('al menos 2', function () { pm.expect(pm.response.json().length).to.be.at.least(2); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Question Service - corrección y reenvío",
+      "item": [
+        {
+          "name": "7.1 Corregir q1 (REJECTED → DRAFT) → 200",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{question_service_url}}/questions/{{question_id}}",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions",
+                "{{question_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorId\": {{docente_id}},\n  \"context\": \"Un arreglo ordenado de n elementos se consulta repetidamente. (corregida)\",\n  \"statement\": \"¿Cuál es la complejidad temporal de la búsqueda binaria?\",\n  \"options\": [\n    {\n      \"label\": \"A\",\n      \"text\": \"O(n)\"\n    },\n    {\n      \"label\": \"B\",\n      \"text\": \"O(log n)\"\n    },\n    {\n      \"label\": \"C\",\n      \"text\": \"O(n²)\"\n    },\n    {\n      \"label\": \"D\",\n      \"text\": \"O(1)\"\n    }\n  ],\n  \"correctOption\": \"B\",\n  \"justification\": \"La búsqueda binaria descarta la mitad del espacio en cada paso.\",\n  \"competency\": \"Razonamiento cuantitativo\",\n  \"topic\": \"Algoritmos\",\n  \"subtopic\": \"Búsqueda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('vuelve a DRAFT', function () { pm.expect(pm.response.json().status).to.eql('DRAFT'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "7.2 Editar q2 (APPROVED) → 409 no editable",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{question_service_url}}/questions/{{question2_id}}",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions",
+                "{{question2_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorId\": {{docente_id}},\n  \"context\": \"Un arreglo ordenado de n elementos se consulta repetidamente.\",\n  \"statement\": \"¿Cuál es la complejidad temporal de la búsqueda binaria?\",\n  \"options\": [\n    {\n      \"label\": \"A\",\n      \"text\": \"O(n)\"\n    },\n    {\n      \"label\": \"B\",\n      \"text\": \"O(log n)\"\n    },\n    {\n      \"label\": \"C\",\n      \"text\": \"O(n log n)\"\n    },\n    {\n      \"label\": \"D\",\n      \"text\": \"O(1)\"\n    }\n  ],\n  \"correctOption\": \"B\",\n  \"justification\": \"La búsqueda binaria descarta la mitad del espacio en cada paso.\",\n  \"competency\": \"Razonamiento cuantitativo\",\n  \"topic\": \"Algoritmos\",\n  \"subtopic\": \"Búsqueda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "7.3 Reenviar q1 a revisión → 202",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/questions/{{question_id}}/submit",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions",
+                "{{question_id}}",
+                "submit"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 202', function () { pm.response.to.have.status(202); });",
+                  "pm.test('operationId presente', function () { pm.expect(pm.response.json().operationId).to.be.a('string'); });",
+                  "pm.collectionVariables.set('operation3_id', pm.response.json().operationId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "7.4 Operación de reenvío → COMPLETED",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/operations/{{operation3_id}}",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "operations",
+                "{{operation3_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Espera 2000 ms para dar tiempo al procesamiento asíncrono (RabbitMQ)",
+                  "setTimeout(function () {}, 2000);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('COMPLETED', function () { pm.expect(pm.response.json().status).to.eql('COMPLETED'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "7.5 q1 vuelve al proceso de revisión → PENDING_REVIEW",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{question_service_url}}/questions/{{question_id}}",
+              "host": [
+                "{{question_service_url}}"
+              ],
+              "path": [
+                "questions",
+                "{{question_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('PENDING_REVIEW', function () { pm.expect(pm.response.json().status).to.eql('PENDING_REVIEW'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Lifecycle Service - publicación",
+      "item": [
+        {
+          "name": "8.1 Publicar q2 (APPROVED → PUBLISHED) → 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/{{question2_id}}/transition",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "{{question2_id}}",
+                "transition"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetState\": \"PUBLISHED\",\n  \"requestedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('PUBLISHED', function () { pm.expect(pm.response.json().status).to.eql('PUBLISHED'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "8.2 Cambiar una pregunta PUBLISHED (estado final) → 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{lifecycle_service_url}}/lifecycle/{{question2_id}}/transition",
+              "host": [
+                "{{lifecycle_service_url}}"
+              ],
+              "path": [
+                "lifecycle",
+                "{{question2_id}}",
+                "transition"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetState\": \"DRAFT\",\n  \"requestedBy\": {{admin_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "user_service_url",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "validation_service_url",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "question_service_url",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "lifecycle_service_url",
+      "value": "http://localhost:8084"
+    },
+    {
+      "key": "review_service_url",
+      "value": "http://localhost:8085"
+    },
+    {
+      "key": "notification_service_url",
+      "value": "http://localhost:8086"
+    },
+    {
+      "key": "docente_id",
+      "value": ""
+    },
+    {
+      "key": "admin_id",
+      "value": ""
+    },
+    {
+      "key": "reviewer_id",
+      "value": ""
+    },
+    {
+      "key": "reviewer2_id",
+      "value": ""
+    },
+    {
+      "key": "student_id",
+      "value": ""
+    },
+    {
+      "key": "question_id",
+      "value": ""
+    },
+    {
+      "key": "question2_id",
+      "value": ""
+    },
+    {
+      "key": "question3_id",
+      "value": ""
+    },
+    {
+      "key": "operation_id",
+      "value": ""
+    },
+    {
+      "key": "operation2_id",
+      "value": ""
+    },
+    {
+      "key": "operation3_id",
+      "value": ""
+    },
+    {
+      "key": "operation_fail_id",
+      "value": ""
+    }
+  ]
+}

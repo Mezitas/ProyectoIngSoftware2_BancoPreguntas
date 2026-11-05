@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{question_service_url}}/operations/{{operation_id}}"
+method: GET
+scripts:
+  - type: beforeRequest
+    code: |-
+      // Espera 2000 ms para dar tiempo al procesamiento asíncrono (RabbitMQ)
+      setTimeout(function () {}, 2000);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('COMPLETED', function () { pm.expect(pm.response.json().status).to.eql('COMPLETED'); });
+    language: text/javascript
+order: 8000

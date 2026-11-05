@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{review_service_url}}/reviews/assign"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "questionId": {{question_id}},
+      "reviewerId": {{reviewer2_id}},
+      "assignedBy": {{admin_id}}
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('HTTP 409', function () { pm.response.to.have.status(409); });
+    language: text/javascript
+order: 6000

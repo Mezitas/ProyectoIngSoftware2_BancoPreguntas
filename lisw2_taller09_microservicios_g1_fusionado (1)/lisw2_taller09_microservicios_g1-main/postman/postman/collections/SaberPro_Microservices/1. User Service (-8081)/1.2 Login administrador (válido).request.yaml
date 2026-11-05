@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{user_service_url}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "admin1",
+      "password": "Admin123*"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('authenticated = true', function () { pm.expect(pm.response.json().authenticated).to.eql(true); });
+      pm.test('incluye datos y roles', function () { var u = pm.response.json().user; pm.expect(u.roles.length).to.be.above(0); });
+      pm.collectionVariables.set('admin_id', pm.response.json().user.id);
+    language: text/javascript
+order: 2000

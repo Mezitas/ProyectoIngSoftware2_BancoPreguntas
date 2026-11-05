@@ -1,0 +1,21 @@
+$kind: collection
+description: Taller 09 - Comunicación síncrona (REST) y asíncrona (RabbitMQ). Ejecutar con Collection Runner en orden (carpetas 1 a 8) con RabbitMQ y los 6 servicios arriba.
+variables:
+  user_service_url: http://localhost:8081
+  validation_service_url: http://localhost:8082
+  question_service_url: http://localhost:8083
+  lifecycle_service_url: http://localhost:8084
+  review_service_url: http://localhost:8085
+  notification_service_url: http://localhost:8086
+  docente_id: ""
+  admin_id: ""
+  reviewer_id: ""
+  reviewer2_id: ""
+  student_id: ""
+  question_id: ""
+  question2_id: ""
+  question3_id: ""
+  operation_id: ""
+  operation2_id: ""
+  operation3_id: ""
+  operation_fail_id: ""

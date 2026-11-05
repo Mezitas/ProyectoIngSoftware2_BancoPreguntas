@@ -1,0 +1,30 @@
+server:
+  port: ${SERVER_PORT:8085}
+
+spring:
+  application:
+    name: review-service
+  datasource:
+    url: jdbc:h2:mem:reviewservice;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASS:guest}
+    listener:
+      simple:
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000ms
+
+services:
+  user-url: ${USER_SERVICE_URL:http://localhost:8081}
+  lifecycle-url: ${LIFECYCLE_SERVICE_URL:http://localhost:8084}

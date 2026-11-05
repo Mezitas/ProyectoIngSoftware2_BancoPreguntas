@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{user_service_url}}/users/9999"
+method: GET
+scripts:
+  - type: afterResponse
+    code: pm.test('HTTP 404', function () { pm.response.to.have.status(404); });
+    language: text/javascript
+order: 10000

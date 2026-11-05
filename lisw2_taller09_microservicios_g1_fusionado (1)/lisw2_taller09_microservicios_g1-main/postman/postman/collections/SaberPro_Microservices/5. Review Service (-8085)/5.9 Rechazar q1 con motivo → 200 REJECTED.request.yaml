@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{review_service_url}}/reviews/result"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "questionId": {{question_id}},
+      "reviewerId": {{reviewer_id}},
+      "result": "REJECTED",
+      "comments": "El distractor C es ambiguo; reescribir."
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('REJECTED', function () { pm.expect(pm.response.json().questionStatus).to.eql('REJECTED'); });
+    language: text/javascript
+order: 9000

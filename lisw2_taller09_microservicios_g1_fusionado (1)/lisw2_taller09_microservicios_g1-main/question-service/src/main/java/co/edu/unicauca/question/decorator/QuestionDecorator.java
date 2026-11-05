@@ -1,0 +1,15 @@
+package co.edu.unicauca.question.decorator;
+
+import co.edu.unicauca.question.domain.model.Question;
+
+/** Patrón Decorator - decorador abstracto: envuelve a otro componente y le delega todo por defecto. */
+public abstract class QuestionDecorator implements QuestionComponent {
+    protected final QuestionComponent wrapped;
+
+    protected QuestionDecorator(QuestionComponent wrapped) { this.wrapped = wrapped; }
+
+    @Override public Question getQuestion() { return wrapped.getQuestion(); }
+    @Override public String getDescription() { return wrapped.getDescription(); }
+    @Override public double getMaxScore() { return wrapped.getMaxScore(); }
+    @Override public String getExplanation() { return wrapped.getExplanation(); }
+}

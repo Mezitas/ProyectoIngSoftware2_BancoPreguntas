@@ -1,0 +1,42 @@
+$kind: http-request
+url: "{{validation_service_url}}/validate"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "context": "Un arreglo ordenado de n elementos se consulta repetidamente.",
+      "statement": "¿Cuál es la complejidad temporal de la búsqueda binaria?",
+      "options": [
+        {
+          "label": "A",
+          "text": "O(n)"
+        },
+        {
+          "label": "B",
+          "text": "O(log n)"
+        },
+        {
+          "label": "C",
+          "text": "O(n log n)"
+        },
+        {
+          "label": "D",
+          "text": "O(1)"
+        }
+      ],
+      "correctOption": "B",
+      "justification": "La búsqueda binaria descarta la mitad del espacio en cada paso.",
+      "competency": "Razonamiento cuantitativo",
+      "topic": "Algoritmos",
+      "subtopic": "Búsqueda"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('valid = true', function () { pm.expect(pm.response.json().valid).to.eql(true); });
+    language: text/javascript
+order: 1000

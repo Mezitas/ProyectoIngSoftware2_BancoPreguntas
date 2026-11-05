@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{question_service_url}}/questions/{{question_id}}/submit"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "requestedBy": {{docente_id}}
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 202', function () { pm.response.to.have.status(202); });
+      pm.test('operationId presente', function () { pm.expect(pm.response.json().operationId).to.be.a('string'); });
+      pm.collectionVariables.set('operation_id', pm.response.json().operationId);
+    language: text/javascript
+order: 7000

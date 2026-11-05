@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{review_service_url}}/reviews/result"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "questionId": {{question_id}},
+      "reviewerId": {{reviewer_id}},
+      "result": "REJECTED"
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('HTTP 400', function () { pm.response.to.have.status(400); });
+    language: text/javascript
+order: 8000
