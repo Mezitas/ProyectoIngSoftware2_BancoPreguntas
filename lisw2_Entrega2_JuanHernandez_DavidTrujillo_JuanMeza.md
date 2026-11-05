@@ -6,7 +6,7 @@
 **Integrantes:** Juan Hernández, Juan Meza y Joseph Trujillo
 **Fecha:** 05/11/2026
 **Repositorio:** https://github.com/Mezitas/ProyectoIngSoftware2_BancoPreguntas  
-**Video de sustentación:** [agregar URL de YouTube]
+**Video de sustentación:** https://youtu.be/Ju7E__Eya6Y
 
 ---
 
@@ -347,18 +347,10 @@ Pruebas representativas:
 
 La existencia de pruebas no implica cobertura de cada clase de dominio y servicio. En particular, no se hallaron pruebas unitarias en `notification-service`; el cumplimiento del criterio de cobertura completa debe comprobarse con cobertura y casos adicionales, no inferirse solo por una ejecución exitosa de Maven. Adjuntar la salida real del comando o un reporte JaCoCo si está disponible.
 
-## 9. Limitaciones y asuntos pendientes
+## 9. URL del video de YouTube
 
-1. **Email:** `backend/notification-service/src/main/java/co/edu/unicauca/notification/service/EmailService.java` simula el envío con una demora y un log. Las notificaciones se procesan y persisten en el sistema, pero no se envía correo real.
-2. **Escalabilidad:** el escenario define métricas objetivo, pero no se adjunta una prueba de carga ejecutada. Presentar resultados solo después de medirlos.
-3. **Tablero Sprint 2 y URLs:** falta insertar la captura auténtica del tablero y la URL del video publicado.
-4. **Persistencia de demostración:** H2 está configurada en memoria y se pierde al reiniciar. No utilizar cuentas o preguntas de demostración como datos persistentes.
-5. **Cobertura de pruebas:** revisar el alcance de pruebas contra todas las clases de dominio y servicios solicitadas por la rúbrica.
+https://youtu.be/Ju7E__Eya6Y
 
-## 10. URL del video de YouTube
-
-**[Agregar enlace público o no listado al video final de 15 minutos.]**
-
-## 11. URL del repositorio Git
+## 10. URL del repositorio Git
 
 https://github.com/Mezitas/ProyectoIngSoftware2_BancoPreguntas
