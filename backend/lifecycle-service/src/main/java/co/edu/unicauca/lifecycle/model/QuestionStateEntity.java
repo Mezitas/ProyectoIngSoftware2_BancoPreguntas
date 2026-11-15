@@ -43,11 +43,27 @@ public class QuestionStateEntity {
         this.changedAt = Instant.now();
     }
 
+    /** Reconstitutes a stored state without changing its audit timestamp. */
+    public QuestionStateEntity(Long questionId, QuestionStatus status, Long createdBy, Long changedBy,
+                               String comment, Instant changedAt) {
+        this.questionId = questionId;
+        this.status = status;
+        this.createdBy = createdBy;
+        this.changedBy = changedBy;
+        this.comment = comment;
+        this.changedAt = changedAt;
+    }
+
     public void apply(QuestionStatus newStatus, Long by, String commentText) {
+        apply(newStatus, by, commentText, Instant.now());
+    }
+
+    /** Applies a domain transition while preserving its timestamp. */
+    public void apply(QuestionStatus newStatus, Long by, String commentText, Instant timestamp) {
         this.status = newStatus;
         this.changedBy = by;
         this.comment = commentText;
-        this.changedAt = Instant.now();
+        this.changedAt = timestamp;
     }
 
     public Long getQuestionId() { return questionId; }

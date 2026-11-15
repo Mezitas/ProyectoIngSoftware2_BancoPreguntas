@@ -1,13 +1,14 @@
 package co.edu.unicauca.lifecycle.service;
 
 import co.edu.unicauca.lifecycle.dto.*;
-import co.edu.unicauca.lifecycle.exception.BadRequestException;
 import co.edu.unicauca.lifecycle.exception.NotFoundException;
-import co.edu.unicauca.lifecycle.model.*;
-import co.edu.unicauca.lifecycle.repository.OperationResultRepository;
-import co.edu.unicauca.lifecycle.repository.QuestionStateRepository;
-import co.edu.unicauca.lifecycle.repository.StateHistoryRepository;
-import co.edu.unicauca.lifecycle.state.LifecycleContext;
+import co.edu.unicauca.lifecycle.domain.QuestionLifecycle;
+import co.edu.unicauca.lifecycle.domain.StateHistoryRecord;
+import co.edu.unicauca.lifecycle.model.QuestionStatus;
+import co.edu.unicauca.lifecycle.port.OperationRecordStore;
+import co.edu.unicauca.lifecycle.port.QuestionLifecycleStore;
+import co.edu.unicauca.lifecycle.port.StateHistoryStore;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class LifecycleService {
 
-    private final QuestionStateRepository states;
-    private final StateHistoryRepository history;
-    private final OperationResultRepository operations;
+    private final QuestionLifecycleStore states;
+    private final StateHistoryStore history;
+    private final OperationRecordStore operations;
 
-    public LifecycleService(QuestionStateRepository states, StateHistoryRepository history,
-                            OperationResultRepository operations) {
+    public LifecycleService(QuestionLifecycleStore states, StateHistoryStore history,
+                            OperationRecordStore operations) {
         this.states = states;
         this.history = history;
         this.operations = operations;
@@ -34,13 +35,14 @@ public class LifecycleService {
     /** Registra una pregunta nueva en DRAFT. Idempotente: si ya existe devuelve su estado actual. */
     @Transactional
     public StateDTO register(Long questionId, Long createdBy) {
-        QuestionStateEntity entity = states.findById(questionId).orElse(null);
-        if (entity == null) {
-            entity = states.save(new QuestionStateEntity(questionId, QuestionStatus.DRAFT, createdBy));
-            history.save(new StateHistoryEntity(questionId, null, QuestionStatus.DRAFT, createdBy,
-                    "Pregunta creada", null));
+        QuestionLifecycle lifecycle = states.findByQuestionId(questionId).orElse(null);
+        if (lifecycle == null) {
+            lifecycle = QuestionLifecycle.draft(questionId, createdBy);
+            lifecycle = states.save(lifecycle);
+            history.append(new StateHistoryRecord(questionId, null, QuestionStatus.DRAFT, createdBy,
+                    "Pregunta creada", null, Instant.now()));
         }
-        return toDto(entity);
+        return toDto(lifecycle);
     }
 
     @Transactional(readOnly = true)
@@ -51,9 +53,9 @@ public class LifecycleService {
     @Transactional(readOnly = true)
     public List<HistoryEntryDTO> history(Long questionId) {
         find(questionId);
-        return history.findByQuestionIdOrderByIdAsc(questionId).stream()
-                .map(h -> new HistoryEntryDTO(h.getFromStatus(), h.getToStatus(), h.getChangedBy(),
-                        h.getComment(), h.getOperationId(), h.getChangedAt()))
+        return history.findByQuestionId(questionId).stream()
+                .map(entry -> new HistoryEntryDTO(entry.fromStatus(), entry.toStatus(), entry.changedBy(),
+                        entry.comment(), entry.operationId(), entry.changedAt()))
                 .toList();
     }
 
@@ -64,36 +66,30 @@ public class LifecycleService {
     @Transactional
     public TransitionResultDTO transition(Long questionId, QuestionStatus target, Long requestedBy,
                                           String comment, String operationId) {
-        QuestionStateEntity entity = find(questionId);
-        if (target == QuestionStatus.REJECTED && (comment == null || comment.isBlank())) {
-            throw new BadRequestException("Para rechazar una pregunta debe indicar el motivo (comment)");
-        }
-        QuestionStatus previous = entity.getStatus();
-
-        LifecycleContext ctx = LifecycleContext.of(previous);
-        ctx.transitionTo(target);   // lanza InvalidTransitionException si no es válida
-
-        entity.apply(ctx.getStatus(), requestedBy, comment);
-        states.save(entity);
-        history.save(new StateHistoryEntity(questionId, previous, ctx.getStatus(), requestedBy, comment, operationId));
-        return new TransitionResultDTO(questionId, previous, ctx.getStatus(), comment, entity.getChangedAt());
+        QuestionLifecycle lifecycle = find(questionId);
+        QuestionStatus previous = lifecycle.status();
+        lifecycle.transitionTo(target, requestedBy, comment);
+        QuestionLifecycle persisted = states.save(lifecycle);
+        history.append(new StateHistoryRecord(questionId, previous, persisted.status(), requestedBy,
+                comment, operationId, persisted.changedAt()));
+        return new TransitionResultDTO(questionId, previous, persisted.status(), comment, persisted.changedAt());
     }
 
     @Transactional(readOnly = true)
     public OperationDTO getOperation(String operationId) {
-        return operations.findById(operationId)
-                .map(o -> new OperationDTO(o.getOperationId(), o.getQuestionId(), o.getType(), o.getStatus(),
-                        o.getMessage(), o.getCreatedAt(), o.getCompletedAt()))
+        return operations.findByOperationId(operationId)
+                .map(operation -> new OperationDTO(operation.operationId(), operation.questionId(), operation.type(),
+                        operation.status(), operation.message(), operation.createdAt(), operation.completedAt()))
                 .orElseThrow(() -> new NotFoundException("No existe la operación " + operationId));
     }
 
-    private QuestionStateEntity find(Long questionId) {
-        return states.findById(questionId)
+    private QuestionLifecycle find(Long questionId) {
+        return states.findByQuestionId(questionId)
                 .orElseThrow(() -> new NotFoundException("La pregunta " + questionId + " no está registrada en el ciclo de vida"));
     }
 
-    private StateDTO toDto(QuestionStateEntity e) {
-        return new StateDTO(e.getQuestionId(), e.getStatus(), e.getCreatedBy(), e.getChangedBy(),
-                e.getComment(), e.getChangedAt());
+    private StateDTO toDto(QuestionLifecycle lifecycle) {
+        return new StateDTO(lifecycle.questionId(), lifecycle.status(), lifecycle.createdBy(),
+                lifecycle.changedBy(), lifecycle.comment(), lifecycle.changedAt());
     }
 }

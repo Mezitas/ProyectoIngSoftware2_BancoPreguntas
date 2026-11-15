@@ -4,7 +4,7 @@ import co.edu.unicauca.user.dto.UserDTO;
 import co.edu.unicauca.user.exception.NotFoundException;
 import co.edu.unicauca.user.model.UserEntity;
 import co.edu.unicauca.user.repository.UserRepository;
-import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import org.springframework.stereotype.Service;
 
@@ -17,16 +17,20 @@ public class UserService {
         this.repository = repository;
     }
 
-    /** Devuelve el usuario si las credenciales son correctas; vacío en caso contrario. */
-    public Optional<UserDTO> authenticate(String username, String password) {
-        return repository.findByUsername(username)
-                .filter(u -> PasswordHasher.matches(password, u.getPasswordHash()))
-                .map(this::toDto);
-    }
-
     public UserDTO findById(Long id) {
         return repository.findById(id).map(this::toDto)
                 .orElseThrow(() -> new NotFoundException("No existe el usuario con id " + id));
+    }
+
+    /**
+     * Keeps the local numeric profile identifier in sync with claims from a verified Keycloak token.
+     * New Keycloak users are provisioned on their first successful sign-in.
+     */
+    public UserDTO synchronizeProfile(String username, String fullName, String email, Set<String> roles) {
+        UserEntity user = repository.findByUsername(username)
+                .orElseGet(() -> new UserEntity(username, fullName, email, roles));
+        user.synchronizeProfile(fullName, email, roles);
+        return toDto(repository.save(user));
     }
 
     private UserDTO toDto(UserEntity u) {

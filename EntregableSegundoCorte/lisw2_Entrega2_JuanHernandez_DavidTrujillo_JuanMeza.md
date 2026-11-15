@@ -32,12 +32,12 @@ Las historias corresponden a los requisitos funcionales del segundo corte. Sus r
 
 **Evidencia de código**
 
-- `frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `QuestionEditorDialog` reúne los campos para crear o editar la pregunta.
-- `frontend/src/main/java/com/bancopreguntas/desktop/ApiClient.java`: serializa las solicitudes REST de creación y actualización.
-- `backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java`: `POST /questions` expone el alta.
-- `backend/question-service/src/main/java/co/edu/unicauca/question/service/QuestionService.java`: valida a través de Validation Service, persiste pregunta y estado inicial, y mapea bibliografía y dificultad.
-- `backend/question-service/src/main/java/co/edu/unicauca/question/model/QuestionEntity.java`: define los datos persistidos de la pregunta.
-- `backend/validation-service/src/main/java/co/edu/unicauca/validation/service/ValidationService.java`: aplica las reglas estructurales y devuelve todos los errores encontrados.
+- `../frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `QuestionEditorDialog` reúne los campos para crear o editar la pregunta.
+- `../frontend/src/main/java/com/bancopreguntas/desktop/ApiClient.java`: serializa las solicitudes REST de creación y actualización.
+- `../backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java`: `POST /questions` expone el alta.
+- `../backend/question-service/src/main/java/co/edu/unicauca/question/service/QuestionService.java`: valida a través de Validation Service, persiste pregunta y estado inicial, y mapea bibliografía y dificultad.
+- `../backend/question-service/src/main/java/co/edu/unicauca/question/model/QuestionEntity.java`: define los datos persistidos de la pregunta.
+- `../backend/validation-service/src/main/java/co/edu/unicauca/validation/service/ValidationService.java`: aplica las reglas estructurales y devuelve todos los errores encontrados.
 
 ### HU2 — Enviar un borrador a revisión
 
@@ -52,11 +52,11 @@ Las historias corresponden a los requisitos funcionales del segundo corte. Sus r
 
 **Evidencia de código**
 
-- `frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `submitSelectedQuestion()` envía la solicitud, consulta la operación y refresca la lista.
-- `frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `StatusRenderer` asigna colores a `DRAFT`, `PENDING_REVIEW`, `IN_REVIEW`, `APPROVED` y `REJECTED`.
-- `backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java`: `POST /questions/{id}/submit`.
-- `backend/question-service/src/main/java/co/edu/unicauca/question/service/QuestionService.java`: crea la operación y publica el comando sin bloquear la respuesta HTTP.
-- `backend/lifecycle-service/src/main/java/co/edu/unicauca/lifecycle/service/CommandProcessor.java`: consume el comando, ejecuta la transición y publica el resultado.
+- `../frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `submitSelectedQuestion()` envía la solicitud, consulta la operación y refresca la lista.
+- `../frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `StatusRenderer` asigna colores a `DRAFT`, `PENDING_REVIEW`, `IN_REVIEW`, `APPROVED` y `REJECTED`.
+- `../backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java`: `POST /questions/{id}/submit`.
+- `../backend/question-service/src/main/java/co/edu/unicauca/question/service/QuestionService.java`: crea la operación y publica el comando sin bloquear la respuesta HTTP.
+- `../backend/lifecycle-service/src/main/java/co/edu/unicauca/lifecycle/service/CommandProcessor.java`: consume el comando, ejecuta la transición y publica el resultado.
 
 ### HU3 — Consultar y editar preguntas
 
@@ -70,9 +70,9 @@ Las historias corresponden a los requisitos funcionales del segundo corte. Sus r
 
 **Evidencia de código**
 
-- `frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `refreshAuthorQuestions()` filtra por `authorId`; `QuestionTablePanel` busca, filtra por estado y pagina localmente los resultados recibidos.
-- `backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java`: `GET /questions`, `GET /questions/{id}` y `PUT /questions/{id}`.
-- `backend/question-service/src/main/java/co/edu/unicauca/question/service/QuestionService.java`: controla autor, permisos de edición y el retorno a `DRAFT`.
+- `../frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `refreshAuthorQuestions()` filtra por `authorId`; `QuestionTablePanel` busca, filtra por estado y pagina localmente los resultados recibidos.
+- `../backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java`: `GET /questions`, `GET /questions/{id}` y `PUT /questions/{id}`.
+- `../backend/question-service/src/main/java/co/edu/unicauca/question/service/QuestionService.java`: controla autor, permisos de edición y el retorno a `DRAFT`.
 
 **Alcance del listado:** los filtros y la paginación están en el cliente Swing. El endpoint de backend `GET /questions` devuelve la colección; no se presentan como paginación o filtrado del servidor.
 
@@ -90,11 +90,11 @@ Las historias corresponden a los requisitos funcionales del segundo corte. Sus r
 
 **Evidencia de código**
 
-- `frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `assignReviewers()` recibe IDs de uno a tres usuarios y llama la API.
-- `backend/review-service/src/main/java/co/edu/unicauca/review/controller/ReviewController.java`: `POST /reviews/assign`.
-- `backend/review-service/src/main/java/co/edu/unicauca/review/service/ReviewService.java`: valida roles, estado, autor, duplicados y límite de revisores; registra asignación y publica el evento.
-- `backend/review-service/src/main/java/co/edu/unicauca/review/messaging/ReviewerAssignedEvent.java`: contrato del evento de asignación.
-- `backend/notification-service/src/main/java/co/edu/unicauca/notification/messaging/NotificationListener.java`: consume eventos de asignación.
+- `../frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `assignReviewers()` recibe IDs de uno a tres usuarios y llama la API.
+- `../backend/review-service/src/main/java/co/edu/unicauca/review/controller/ReviewController.java`: `POST /reviews/assign`.
+- `../backend/review-service/src/main/java/co/edu/unicauca/review/service/ReviewService.java`: valida roles, estado, autor, duplicados y límite de revisores; registra asignación y publica el evento.
+- `../backend/review-service/src/main/java/co/edu/unicauca/review/messaging/ReviewerAssignedEvent.java`: contrato del evento de asignación.
+- `../backend/notification-service/src/main/java/co/edu/unicauca/notification/messaging/NotificationListener.java`: consume eventos de asignación.
 
 ### HU5 — Revisar y comunicar el resultado
 
@@ -110,11 +110,11 @@ Las historias corresponden a los requisitos funcionales del segundo corte. Sus r
 
 **Evidencia de código**
 
-- `frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `refreshReviewerQuestions()`, `evaluateSelectedQuestion()` y `showSelectedReviewResults()` muestran asignaciones, captura de la evaluación y consulta de observaciones.
-- `backend/review-service/src/main/java/co/edu/unicauca/review/controller/ReviewController.java`: `GET /reviews/reviewer/{reviewerId}`, `POST /reviews/result` y `GET /reviews/question/{questionId}/results`.
-- `backend/review-service/src/main/java/co/edu/unicauca/review/service/ReviewService.java`: controla voto único, motivo obligatorio y consenso antes de cambiar el estado final.
-- `backend/notification-service/src/main/java/co/edu/unicauca/notification/messaging/NotificationListener.java`: procesa las notificaciones de resultado.
-- `backend/notification-service/src/main/java/co/edu/unicauca/notification/service/EmailService.java`: simula el envío diferido y registra el mensaje en log; no envía correo real en esta versión.
+- `../frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`: `refreshReviewerQuestions()`, `evaluateSelectedQuestion()` y `showSelectedReviewResults()` muestran asignaciones, captura de la evaluación y consulta de observaciones.
+- `../backend/review-service/src/main/java/co/edu/unicauca/review/controller/ReviewController.java`: `GET /reviews/reviewer/{reviewerId}`, `POST /reviews/result` y `GET /reviews/question/{questionId}/results`.
+- `../backend/review-service/src/main/java/co/edu/unicauca/review/service/ReviewService.java`: controla voto único, motivo obligatorio y consenso antes de cambiar el estado final.
+- `../backend/notification-service/src/main/java/co/edu/unicauca/notification/messaging/NotificationListener.java`: procesa las notificaciones de resultado.
+- `../backend/notification-service/src/main/java/co/edu/unicauca/notification/service/EmailService.java`: simula el envío diferido y registra el mensaje en log; no envía correo real en esta versión.
 
 ## 3. Planificación del Sprint 2
 
@@ -136,10 +136,10 @@ Las historias corresponden a los requisitos funcionales del segundo corte. Sus r
 
 ### Evidencia arquitectónica
 
-- `backend/question-service/src/main/java/co/edu/unicauca/question/messaging/CommandPublisher.java`: publica el comando de envío.
-- `backend/lifecycle-service/src/main/java/co/edu/unicauca/lifecycle/service/CommandProcessor.java`: procesa comandos, evita repetir operaciones por `operationId` y publica resultados.
-- `backend/notification-service/src/main/java/co/edu/unicauca/notification/messaging/NotificationListener.java`: consume eventos sin bloquear la asignación o decisión de revisión.
-- `backend/docker-compose.yml`: infraestructura local de RabbitMQ.
+- `../backend/question-service/src/main/java/co/edu/unicauca/question/messaging/CommandPublisher.java`: publica el comando de envío.
+- `../backend/lifecycle-service/src/main/java/co/edu/unicauca/lifecycle/service/CommandProcessor.java`: procesa comandos, evita repetir operaciones por `operationId` y publica resultados.
+- `../backend/notification-service/src/main/java/co/edu/unicauca/notification/messaging/NotificationListener.java`: consume eventos sin bloquear la asignación o decisión de revisión.
+- `../backend/docker-compose.yml`: infraestructura local de RabbitMQ.
 
 **Estado de medición:** no se encontró evidencia de una prueba de carga ejecutada. Los valores anteriores son metas propuestas para el escenario y no deben reportarse como resultados observados hasta ejecutar y adjuntar la prueba.
 
@@ -291,7 +291,7 @@ sequenceDiagram
 
 ### Separación y comunicación
 
-La aplicación de escritorio y el backend son procesos independientes. `frontend/src/main/java/com/bancopreguntas/desktop/ApiClient.java` concentra las solicitudes HTTP y configura URLs por variables de entorno. `backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java` y `backend/review-service/src/main/java/co/edu/unicauca/review/controller/ReviewController.java` exponen recursos REST. RabbitMQ se reserva para interacciones asíncronas. La búsqueda y paginación del listado se hacen en la aplicación Swing sobre los datos entregados por `GET /questions`.
+La aplicación de escritorio y el backend son procesos independientes. `../frontend/src/main/java/com/bancopreguntas/desktop/ApiClient.java` concentra las solicitudes HTTP y configura URLs por variables de entorno. `../backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java` y `../backend/review-service/src/main/java/co/edu/unicauca/review/controller/ReviewController.java` exponen recursos REST. RabbitMQ se reserva para interacciones asíncronas. La búsqueda y paginación del listado se hacen en la aplicación Swing sobre los datos entregados por `GET /questions`.
 
 ## 6. Patrones de diseño
 
@@ -299,17 +299,17 @@ El README del backend enumera los patrones presentes en la solución. El siguien
 
 | Patrón | Categoría | Código | Aplicación |
 |---|---|---|---|
-| Builder | Creacional | `backend/question-service/src/main/java/co/edu/unicauca/question/builder/QuestionBuilder.java`, `QuestionDirector.java` | Construye un reactivo por partes y comprueba cuatro opciones y una respuesta correcta. `QuestionDirector` ofrece construcciones predefinidas. |
-| Factory Method | Creacional | `backend/validation-service/src/main/java/co/edu/unicauca/validation/templatemethod/QuestionEvaluatorCreator.java`, `MultipleChoiceEvaluatorCreator.java`, `TrueFalseEvaluatorCreator.java`, `CaseStudyEvaluatorCreator.java`, `EvaluationService.java` | La clase creadora define el método de fábrica y los creadores concretos producen el evaluador específico para cada tipo de solicitud. |
-| Adapter | Estructural | `backend/question-service/src/main/java/co/edu/unicauca/question/adapter/ExternalQuestionAdapter.java` | Convierte respuestas externas JSON o cadenas crudas al contrato `QuestionProvider` y al modelo interno. |
-| Facade | Estructural | `backend/question-service/src/main/java/co/edu/unicauca/question/facade/QuestionBankFacade.java` | Unifica operaciones del caso de uso y oculta al controlador la colaboración de servicios, repositorio, importador y decoradores. |
-| Decorator | Estructural | `backend/question-service/src/main/java/co/edu/unicauca/question/decorator/FeedbackQuestion.java`, `HighDifficultyQuestion.java`; composición en `QuestionBankFacade.java` | Añade retroalimentación o dificultad a una presentación sin modificar el componente base. |
-| State | Comportamiento | `backend/lifecycle-service/src/main/java/co/edu/unicauca/lifecycle/state/LifecycleContext.java`, `DraftState.java`, `PendingReviewState.java`, `InReviewState.java`, `ApprovedState.java`, `RejectedState.java` | Cada estado acepta o rechaza transiciones propias; el contexto delega la operación al estado actual. |
-| Template Method | Comportamiento | `backend/validation-service/src/main/java/co/edu/unicauca/validation/templatemethod/QuestionEvaluator.java`, `MultipleChoiceEvaluator.java`, `TrueFalseEvaluator.java`, `CaseStudyEvaluator.java` | `evaluate()` fija la secuencia común; las subclases implementan formato y cálculo particulares. |
+| Builder | Creacional | `../backend/question-service/src/main/java/co/edu/unicauca/question/builder/QuestionBuilder.java`, `QuestionDirector.java` | Construye un reactivo por partes y comprueba cuatro opciones y una respuesta correcta. `QuestionDirector` ofrece construcciones predefinidas. |
+| Factory Method | Creacional | `../backend/validation-service/src/main/java/co/edu/unicauca/validation/templatemethod/QuestionEvaluatorCreator.java`, `MultipleChoiceEvaluatorCreator.java`, `TrueFalseEvaluatorCreator.java`, `CaseStudyEvaluatorCreator.java`, `EvaluationService.java` | La clase creadora define el método de fábrica y los creadores concretos producen el evaluador específico para cada tipo de solicitud. |
+| Adapter | Estructural | `../backend/question-service/src/main/java/co/edu/unicauca/question/adapter/ExternalQuestionAdapter.java` | Convierte respuestas externas JSON o cadenas crudas al contrato `QuestionProvider` y al modelo interno. |
+| Facade | Estructural | `../backend/question-service/src/main/java/co/edu/unicauca/question/facade/QuestionBankFacade.java` | Unifica operaciones del caso de uso y oculta al controlador la colaboración de servicios, repositorio, importador y decoradores. |
+| Decorator | Estructural | `../backend/question-service/src/main/java/co/edu/unicauca/question/decorator/FeedbackQuestion.java`, `HighDifficultyQuestion.java`; composición en `QuestionBankFacade.java` | Añade retroalimentación o dificultad a una presentación sin modificar el componente base. |
+| State | Comportamiento | `../backend/lifecycle-service/src/main/java/co/edu/unicauca/lifecycle/state/LifecycleContext.java`, `DraftState.java`, `PendingReviewState.java`, `InReviewState.java`, `ApprovedState.java`, `RejectedState.java` | Cada estado acepta o rechaza transiciones propias; el contexto delega la operación al estado actual. |
+| Template Method | Comportamiento | `../backend/validation-service/src/main/java/co/edu/unicauca/validation/templatemethod/QuestionEvaluator.java`, `MultipleChoiceEvaluator.java`, `TrueFalseEvaluator.java`, `CaseStudyEvaluator.java` | `evaluate()` fija la secuencia común; las subclases implementan formato y cálculo particulares. |
 
 ### Verificación de la cuota GoF
 
-El requisito solicita **al menos dos creacionales, dos estructurales y dos de comportamiento**. Esta versión evidencia Builder y Factory Method como creacionales; Adapter, Facade y Decorator como estructurales; y State y Template Method como de comportamiento. El Factory Method se prueba en `backend/validation-service/src/test/java/co/edu/unicauca/validation/QuestionEvaluatorTest.java`: la prueba comprueba que cada creador produce el tipo correcto de evaluador y que se rechazan parámetros requeridos ausentes.
+El requisito solicita **al menos dos creacionales, dos estructurales y dos de comportamiento**. Esta versión evidencia Builder y Factory Method como creacionales; Adapter, Facade y Decorator como estructurales; y State y Template Method como de comportamiento. El Factory Method se prueba en `../backend/validation-service/src/test/java/co/edu/unicauca/validation/QuestionEvaluatorTest.java`: la prueba comprueba que cada creador produce el tipo correcto de evaluador y que se rechazan parámetros requeridos ausentes.
 
 ## 7. Documentación interactiva de la API REST (Swagger/OpenAPI)
 
@@ -336,14 +336,14 @@ mvn test
 
 Pruebas representativas:
 
-- `backend/question-service/src/test/java/co/edu/unicauca/question/QuestionBuilderTest.java`: construcción y reglas del Builder.
-- `backend/question-service/src/test/java/co/edu/unicauca/question/QuestionServiceTest.java`: orquestación de creación, estado y operaciones.
-- `backend/question-service/src/test/java/co/edu/unicauca/question/QuestionDecoratorTest.java`: composición de presentación decorada.
-- `backend/review-service/src/test/java/co/edu/unicauca/review/ReviewServiceTest.java`: asignación, límites y resultado agregado de revisores.
-- `backend/validation-service/src/test/java/co/edu/unicauca/validation/ValidationServiceTest.java`: reglas estructurales y metadatos.
-- `backend/validation-service/src/test/java/co/edu/unicauca/validation/QuestionEvaluatorTest.java`: Factory Method crea cada evaluador y valida parámetros.
-- `backend/lifecycle-service/src/test/java/co/edu/unicauca/lifecycle/LifecycleContextTest.java`: transiciones permitidas y no permitidas.
-- `backend/user-service/src/test/java/co/edu/unicauca/user/PasswordHasherTest.java`: hash y verificación de contraseña.
+- `../backend/question-service/src/test/java/co/edu/unicauca/question/QuestionBuilderTest.java`: construcción y reglas del Builder.
+- `../backend/question-service/src/test/java/co/edu/unicauca/question/QuestionServiceTest.java`: orquestación de creación, estado y operaciones.
+- `../backend/question-service/src/test/java/co/edu/unicauca/question/QuestionDecoratorTest.java`: composición de presentación decorada.
+- `../backend/review-service/src/test/java/co/edu/unicauca/review/ReviewServiceTest.java`: asignación, límites y resultado agregado de revisores.
+- `../backend/validation-service/src/test/java/co/edu/unicauca/validation/ValidationServiceTest.java`: reglas estructurales y metadatos.
+- `../backend/validation-service/src/test/java/co/edu/unicauca/validation/QuestionEvaluatorTest.java`: Factory Method crea cada evaluador y valida parámetros.
+- `../backend/lifecycle-service/src/test/java/co/edu/unicauca/lifecycle/LifecycleContextTest.java`: transiciones permitidas y no permitidas.
+- `../backend/user-service/src/test/java/co/edu/unicauca/user/PasswordHasherTest.java`: hash y verificación de contraseña.
 
 La existencia de pruebas no implica cobertura de cada clase de dominio y servicio. En particular, no se hallaron pruebas unitarias en `notification-service`; el cumplimiento del criterio de cobertura completa debe comprobarse con cobertura y casos adicionales, no inferirse solo por una ejecución exitosa de Maven. Adjuntar la salida real del comando o un reporte JaCoCo si está disponible.
 

@@ -5,7 +5,7 @@ spring:
   application:
     name: review-service
   datasource:
-    url: jdbc:h2:mem:reviewservice;DB_CLOSE_DELAY=-1
+    url: ${DB_URL:jdbc:h2:mem:reviewservice;DB_CLOSE_DELAY=-1}
     username: sa
     password:
   jpa:
@@ -15,8 +15,8 @@ spring:
   rabbitmq:
     host: ${RABBIT_HOST:localhost}
     port: ${RABBIT_PORT:5672}
-    username: ${RABBIT_USER:guest}
-    password: ${RABBIT_PASS:guest}
+    username: ${RABBIT_USER:saberpro}
+    password: ${RABBIT_PASS:SaberProRabbit123!}
     listener:
       simple:
         default-requeue-rejected: false
@@ -24,6 +24,12 @@ spring:
           enabled: true
           max-attempts: 3
           initial-interval: 1000ms
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/saberpro}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/saberpro/protocol/openid-connect/certs}
 
 services:
   user-url: ${USER_SERVICE_URL:http://localhost:8081}

@@ -24,7 +24,7 @@
 
 **Presenta:** [integrante 3]
 
-**En pantalla:** diagramas C4 del informe; después `frontend/src/main/java/com/bancopreguntas/desktop/ApiClient.java` y `backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java`.
+**En pantalla:** diagramas C4 del informe; después `../frontend/src/main/java/com/bancopreguntas/desktop/ApiClient.java` y `../backend/question-service/src/main/java/co/edu/unicauca/question/controller/QuestionController.java`.
 
 **Guion:** “El frontend es una aplicación de escritorio Java Swing separada del backend. `ApiClient` consume REST y no comparte clases ni base de datos con los servicios. El backend se divide en seis microservicios: usuarios, validación, preguntas, ciclo de vida, revisión y notificaciones. REST se usa para consultas y operaciones que necesitan respuesta inmediata; RabbitMQ desacopla el envío a revisión y las notificaciones. El diagrama de secuencia muestra el recorrido desde el autor hasta Lifecycle y el resultado asíncrono. Cada servicio es dueño de sus datos; las bases H2 de esta versión son volátiles.”
 
@@ -72,15 +72,15 @@
 
 **Presenta:** todos los integrantes, distribuyendo la demostración
 
-**10:00–11:00 — Inicio de sesión y roles.** Iniciar con `docente1 / Docente123*`; mostrar los datos del usuario y las pestañas de autor. En `backend/user-service/src/main/java/co/edu/unicauca/user/config/DataSeeder.java` están las cuentas de prueba; `backend/user-service/src/main/java/co/edu/unicauca/user/controller/AuthController.java` expone el login.
+**10:00–11:00 — Inicio de sesión y roles.** Iniciar con `docente1 / Docente123*`; mostrar los datos del usuario y las pestañas de autor. En `../backend/user-service/src/main/java/co/edu/unicauca/user/config/DataSeeder.java` están las cuentas de prueba; `../backend/user-service/src/main/java/co/edu/unicauca/user/controller/AuthController.java` expone el login.
 
-**11:00–12:00 — Crear, validar y listar.** Crear una pregunta con contexto, enunciado, cuatro opciones, clave, justificación, bibliografía, competencia, tema, subtema y dificultad. Mostrar el estado `DRAFT`, los filtros y la paginación. Evidencia: `frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`; `backend/question-service/src/main/java/co/edu/unicauca/question/service/QuestionService.java`; `backend/validation-service/src/main/java/co/edu/unicauca/validation/service/ValidationService.java`.
+**11:00–12:00 — Crear, validar y listar.** Crear una pregunta con contexto, enunciado, cuatro opciones, clave, justificación, bibliografía, competencia, tema, subtema y dificultad. Mostrar el estado `DRAFT`, los filtros y la paginación. Evidencia: `../frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`; `../backend/question-service/src/main/java/co/edu/unicauca/question/service/QuestionService.java`; `../backend/validation-service/src/main/java/co/edu/unicauca/validation/service/ValidationService.java`.
 
-**12:00–13:00 — Envío a revisión.** Seleccionar el borrador, pulsar “Enviar a revisión”, consultar la operación y actualizar el listado hasta ver `PENDING_REVIEW`. Evidencia: `backend/question-service/src/main/java/co/edu/unicauca/question/messaging/CommandPublisher.java` y `backend/lifecycle-service/src/main/java/co/edu/unicauca/lifecycle/service/CommandProcessor.java`.
+**12:00–13:00 — Envío a revisión.** Seleccionar el borrador, pulsar “Enviar a revisión”, consultar la operación y actualizar el listado hasta ver `PENDING_REVIEW`. Evidencia: `../backend/question-service/src/main/java/co/edu/unicauca/question/messaging/CommandPublisher.java` y `../backend/lifecycle-service/src/main/java/co/edu/unicauca/lifecycle/service/CommandProcessor.java`.
 
-**13:00–14:00 — Asignación y evaluación.** Entrar como `admin1 / Admin123*`, asignar revisores 3 y/o 4; iniciar sesión como `revisor1 / Revisor123*` o `revisor2 / Revisor123*`, evaluar y escribir observaciones. Evidencia: `backend/review-service/src/main/java/co/edu/unicauca/review/service/ReviewService.java`; la interfaz muestra asignaciones en “Mis revisiones”.
+**13:00–14:00 — Asignación y evaluación.** Entrar como `admin1 / Admin123*`, asignar revisores 3 y/o 4; iniciar sesión como `revisor1 / Revisor123*` o `revisor2 / Revisor123*`, evaluar y escribir observaciones. Evidencia: `../backend/review-service/src/main/java/co/edu/unicauca/review/service/ReviewService.java`; la interfaz muestra asignaciones en “Mis revisiones”.
 
-**14:00–15:00 — Estado final y notificaciones.** Mostrar consenso, `APPROVED` o `REJECTED`, observaciones y notificaciones. Aclarar que el servicio de correo de ejemplo simula el envío y lo registra en el log; no envía correo real. Evidencia: `backend/notification-service/src/main/java/co/edu/unicauca/notification/messaging/NotificationListener.java`, `backend/notification-service/src/main/java/co/edu/unicauca/notification/service/EmailService.java` y `frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`.
+**14:00–15:00 — Estado final y notificaciones.** Mostrar consenso, `APPROVED` o `REJECTED`, observaciones y notificaciones. Aclarar que el servicio de correo de ejemplo simula el envío y lo registra en el log; no envía correo real. Evidencia: `../backend/notification-service/src/main/java/co/edu/unicauca/notification/messaging/NotificationListener.java`, `../backend/notification-service/src/main/java/co/edu/unicauca/notification/service/EmailService.java` y `../frontend/src/main/java/com/bancopreguntas/desktop/BancoPreguntasApp.java`.
 
 ## Lista de preparación para grabar
 

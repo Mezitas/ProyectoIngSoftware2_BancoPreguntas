@@ -3,13 +3,194 @@ services:
     image: rabbitmq:3-management
     container_name: saberpro-rabbitmq
     ports:
-      - "5672:5672"     # AMQP (microservicios)
-      - "15672:15672"   # Consola web de administración (guest / guest)
+      - "5672:5672"
+      - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-saberpro}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASS:-SaberProRabbit123!}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: saberpro-keycloak
+    command: ["start-dev", "--import-realm", "--hostname", "http://localhost:8180", "--hostname-strict=false"]
+    ports:
+      - "8180:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-AdminKeycloak123!}
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./keycloak/realm-saberpro.json:/opt/keycloak/data/import/realm-saberpro.json:ro
+      - keycloak_data:/opt/keycloak/data
+
+  user-service:
+    image: saberpro/user-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: user-service
+    container_name: saberpro-user-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      DB_URL: jdbc:h2:file:/data/userservice;DB_CLOSE_ON_EXIT=FALSE
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/saberpro
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/saberpro/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/saberpro/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_ID: saberpro-desktop
+    volumes:
+      - users_data:/data
+    depends_on:
+      - keycloak
+
+  validation-service:
+    image: saberpro/validation-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: validation-service
+    container_name: saberpro-validation-service
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/saberpro
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/saberpro/protocol/openid-connect/certs
+
+  question-service:
+    image: saberpro/question-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: question-service
+    container_name: saberpro-question-service
+    ports:
+      - "8083:8083"
+    environment:
+      SERVER_PORT: 8083
+      DB_URL: jdbc:h2:file:/data/questionservice;DB_CLOSE_ON_EXIT=FALSE
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: ${RABBIT_USER:-saberpro}
+      RABBIT_PASS: ${RABBIT_PASS:-SaberProRabbit123!}
+      USER_SERVICE_URL: http://user-service:8081
+      VALIDATION_SERVICE_URL: http://validation-service:8082
+      LIFECYCLE_SERVICE_URL: http://lifecycle-service:8084
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/saberpro
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/saberpro/protocol/openid-connect/certs
+    volumes:
+      - questions_data:/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      user-service:
+        condition: service_started
+      validation-service:
+        condition: service_started
+      lifecycle-service:
+        condition: service_started
+
+  lifecycle-service:
+    image: saberpro/lifecycle-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: lifecycle-service
+    container_name: saberpro-lifecycle-service
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: 8084
+      DB_URL: jdbc:h2:file:/data/lifecycleservice;DB_CLOSE_ON_EXIT=FALSE
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: ${RABBIT_USER:-saberpro}
+      RABBIT_PASS: ${RABBIT_PASS:-SaberProRabbit123!}
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/saberpro
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/saberpro/protocol/openid-connect/certs
+    volumes:
+      - lifecycle_data:/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+  review-service:
+    image: saberpro/review-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: review-service
+    container_name: saberpro-review-service
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: 8085
+      DB_URL: jdbc:h2:file:/data/reviewservice;DB_CLOSE_ON_EXIT=FALSE
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: ${RABBIT_USER:-saberpro}
+      RABBIT_PASS: ${RABBIT_PASS:-SaberProRabbit123!}
+      USER_SERVICE_URL: http://user-service:8081
+      LIFECYCLE_SERVICE_URL: http://lifecycle-service:8084
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/saberpro
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/saberpro/protocol/openid-connect/certs
+    volumes:
+      - reviews_data:/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      user-service:
+        condition: service_started
+      lifecycle-service:
+        condition: service_started
+
+  notification-service:
+    image: saberpro/notification-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: notification-service
+    container_name: saberpro-notification-service
+    ports:
+      - "8086:8086"
+    environment:
+      SERVER_PORT: 8086
+      DB_URL: jdbc:h2:file:/data/notificationservice;DB_CLOSE_ON_EXIT=FALSE
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: ${RABBIT_USER:-saberpro}
+      RABBIT_PASS: ${RABBIT_PASS:-SaberProRabbit123!}
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/saberpro
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/saberpro/protocol/openid-connect/certs
+    volumes:
+      - notifications_data:/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+volumes:
+  rabbitmq_data:
+  keycloak_data:
+  users_data:
+  questions_data:
+  lifecycle_data:
+  reviews_data:
+  notifications_data:

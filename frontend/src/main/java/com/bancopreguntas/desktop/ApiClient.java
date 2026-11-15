@@ -11,6 +11,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+/** HTTP adapter that authenticates through User Service and sends the resulting Keycloak JWT. */
 final class ApiClient {
     private final ObjectMapper mapper = new ObjectMapper();
     private final HttpClient http = HttpClient.newBuilder()
@@ -21,6 +22,7 @@ final class ApiClient {
     private final String questions = baseUrl("BANCO_API_QUESTIONS_URL", "http://localhost:8083");
     private final String reviews = baseUrl("BANCO_API_REVIEWS_URL", "http://localhost:8085");
     private final String notifications = baseUrl("BANCO_API_NOTIFICATIONS_URL", "http://localhost:8086");
+    private volatile String accessToken;
 
     private static String baseUrl(String variable, String fallback) {
         String value = System.getenv(variable);
@@ -34,7 +36,14 @@ final class ApiClient {
         ObjectNode body = mapper.createObjectNode()
                 .put("username", username)
                 .put("password", password);
-        return send(users, "/auth/login", "POST", body);
+        JsonNode response = send(users, "/auth/login", "POST", body);
+        String token = response.path("accessToken").asText("");
+        accessToken = token.isBlank() ? null : token;
+        return response;
+    }
+
+    void logout() {
+        accessToken = null;
     }
 
     JsonNode allQuestions() {
@@ -96,6 +105,10 @@ final class ApiClient {
         HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(base + path))
                 .timeout(Duration.ofSeconds(15))
                 .header("Accept", "application/json");
+        String token = accessToken;
+        if (token != null) {
+            request.header("Authorization", "Bearer " + token);
+        }
         if (body == null) {
             request.method(method, HttpRequest.BodyPublishers.noBody());
         } else {

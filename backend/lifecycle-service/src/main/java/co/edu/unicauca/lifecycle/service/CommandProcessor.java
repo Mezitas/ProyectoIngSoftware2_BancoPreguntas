@@ -3,13 +3,13 @@ package co.edu.unicauca.lifecycle.service;
 import co.edu.unicauca.lifecycle.exception.BadRequestException;
 import co.edu.unicauca.lifecycle.exception.InvalidTransitionException;
 import co.edu.unicauca.lifecycle.exception.NotFoundException;
+import co.edu.unicauca.lifecycle.domain.OperationRecord;
 import co.edu.unicauca.lifecycle.messaging.OperationResultMessage;
 import co.edu.unicauca.lifecycle.messaging.ResultPublisher;
 import co.edu.unicauca.lifecycle.messaging.SubmitQuestionForReviewCommand;
-import co.edu.unicauca.lifecycle.model.OperationResultEntity;
 import co.edu.unicauca.lifecycle.model.OperationStatus;
 import co.edu.unicauca.lifecycle.model.QuestionStatus;
-import co.edu.unicauca.lifecycle.repository.OperationResultRepository;
+import co.edu.unicauca.lifecycle.port.OperationRecordStore;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +28,10 @@ public class CommandProcessor {
     private static final Logger log = LoggerFactory.getLogger(CommandProcessor.class);
 
     private final LifecycleService lifecycle;
-    private final OperationResultRepository operations;
+    private final OperationRecordStore operations;
     private final ResultPublisher publisher;
 
-    public CommandProcessor(LifecycleService lifecycle, OperationResultRepository operations,
+    public CommandProcessor(LifecycleService lifecycle, OperationRecordStore operations,
                             ResultPublisher publisher) {
         this.lifecycle = lifecycle;
         this.operations = operations;
@@ -40,27 +40,32 @@ public class CommandProcessor {
 
     public void process(SubmitQuestionForReviewCommand cmd) {
         // Idempotencia: RabbitMQ garantiza "al menos una vez"; si el comando se redelivera, no se repite.
-        if (operations.existsById(cmd.operationId())) {
+        if (operations.existsByOperationId(cmd.operationId())) {
             log.warn("[LifecycleService] Comando duplicado ignorado: {}", cmd.operationId());
             return;
         }
-        OperationResultEntity op = operations.save(
-                new OperationResultEntity(cmd.operationId(), cmd.questionId(), TYPE));
+        operations.createPending(cmd.operationId(), cmd.questionId(), TYPE);
+        OperationStatus status;
+        String message;
 
         try {
             lifecycle.transition(cmd.questionId(), QuestionStatus.PENDING_REVIEW, cmd.requestedBy(),
                     "Enviada a revisión", cmd.operationId());
-            op.complete(OperationStatus.COMPLETED, "La pregunta pasó a PENDING_REVIEW");
+            status = OperationStatus.COMPLETED;
+            message = "La pregunta pasó a PENDING_REVIEW";
         } catch (InvalidTransitionException | NotFoundException | BadRequestException e) {
-            op.complete(OperationStatus.FAILED, e.getMessage());
+            status = OperationStatus.FAILED;
+            message = e.getMessage();
         } catch (Exception e) {
             log.error("Error inesperado procesando la operación {}", cmd.operationId(), e);
-            op.complete(OperationStatus.FAILED, "Error interno: " + e.getClass().getSimpleName());
+            status = OperationStatus.FAILED;
+            message = "Error interno: " + e.getClass().getSimpleName();
         }
-        operations.save(op);
-        log.info("[LifecycleService] Operación {} -> {} ({})", op.getOperationId(), op.getStatus(), op.getMessage());
+        OperationRecord operation = operations.complete(cmd.operationId(), status, message);
+        log.info("[LifecycleService] Operación {} -> {} ({})", operation.operationId(),
+                operation.status(), operation.message());
 
-        publisher.publish(new OperationResultMessage(op.getOperationId(), op.getQuestionId(), TYPE,
-                op.getStatus().name(), op.getMessage(), Instant.now()));
+        publisher.publish(new OperationResultMessage(operation.operationId(), operation.questionId(), TYPE,
+                operation.status().name(), operation.message(), Instant.now()));
     }
 }

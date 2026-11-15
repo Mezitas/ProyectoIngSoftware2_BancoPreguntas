@@ -4,3 +4,9 @@ server:
 spring:
   application:
     name: validation-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/saberpro}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/saberpro/protocol/openid-connect/certs}

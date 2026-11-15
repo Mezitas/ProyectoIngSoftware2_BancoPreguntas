@@ -15,9 +15,6 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
-
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
@@ -32,12 +29,18 @@ public class UserEntity {
     protected UserEntity() {
     }
 
-    public UserEntity(String username, String passwordHash, String fullName, String email, Set<String> roles) {
+    public UserEntity(String username, String fullName, String email, Set<String> roles) {
         this.username = username;
-        this.passwordHash = passwordHash;
         this.fullName = fullName;
         this.email = email;
-        this.roles = roles;
+        this.roles = new HashSet<>(roles);
+    }
+
+    /** Synchronizes profile attributes and role assignments from the validated Keycloak token. */
+    public void synchronizeProfile(String fullName, String email, Set<String> roles) {
+        this.fullName = fullName;
+        this.email = email;
+        this.roles = new HashSet<>(roles);
     }
 
     public boolean hasRole(String role) {
@@ -46,7 +49,6 @@ public class UserEntity {
 
     public Long getId() { return id; }
     public String getUsername() { return username; }
-    public String getPasswordHash() { return passwordHash; }
     public String getFullName() { return fullName; }
     public String getEmail() { return email; }
     public Set<String> getRoles() { return roles; }

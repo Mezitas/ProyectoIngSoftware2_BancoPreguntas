@@ -142,7 +142,11 @@ public final class BancoPreguntasApp {
         JLabel profile = new JLabel(person + "   ·   " + roleText(currentUser));
         profile.setForeground(MUTED);
         JButton logout = button("Cerrar sesión");
-        logout.addActionListener(event -> showLogin());
+        logout.addActionListener(event -> {
+            api.logout();
+            currentUser = null;
+            showLogin();
+        });
         JPanel identity = new JPanel(new BorderLayout(18, 0));
         identity.setOpaque(false);
         identity.add(profile, BorderLayout.CENTER);
