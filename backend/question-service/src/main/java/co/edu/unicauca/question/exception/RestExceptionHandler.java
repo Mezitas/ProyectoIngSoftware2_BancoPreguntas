@@ -37,6 +37,11 @@ public class RestExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Petición mal formada (JSON o parámetro inválido)", List.of());
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> onBadRequestException(BadRequestException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), List.of());
+    }
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> onNotFoundException(NotFoundException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), List.of());

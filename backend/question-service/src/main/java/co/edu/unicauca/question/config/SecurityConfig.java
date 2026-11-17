@@ -29,6 +29,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/questions", "/questions/*/submit", "/questions/import")
                         .hasAnyRole("DOCENTE", "AUTOR")
                         .requestMatchers(HttpMethod.PUT, "/questions/**").hasAnyRole("DOCENTE", "AUTOR")
+                        .requestMatchers(HttpMethod.GET, "/questions", "/questions/**")
+                        .hasAnyRole("DOCENTE", "AUTOR", "ADMIN", "REVISOR")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter())))
                 .build();

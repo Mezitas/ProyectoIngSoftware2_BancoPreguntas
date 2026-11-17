@@ -2,6 +2,7 @@ package co.edu.unicauca.question.client;
 
 import co.edu.unicauca.question.dto.LifecycleStateDTO;
 import co.edu.unicauca.question.exception.ConflictException;
+import co.edu.unicauca.question.exception.ForbiddenException;
 import co.edu.unicauca.question.exception.ServiceUnavailableException;
 import java.util.Map;
 import java.util.Optional;
@@ -53,6 +54,8 @@ public class LifecycleClient {
             rest.postForObject(baseUrl + "/lifecycle/" + questionId + "/transition",
                     Map.of("targetState", targetState, "requestedBy", requestedBy, "comment", comment),
                     Object.class);
+        } catch (HttpClientErrorException.Forbidden e) {
+            throw new ForbiddenException("Su rol no permite la transición a " + targetState);
         } catch (HttpClientErrorException.Conflict e) {
             throw new ConflictException("Lifecycle Service rechazó la transición a " + targetState);
         } catch (RestClientException e) {

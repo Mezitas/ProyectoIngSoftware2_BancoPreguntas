@@ -18,6 +18,9 @@ public class RabbitMQConfig {
     public static final String QUEUE_OPERATION_RESULT = "question.operation.result.queue";
     public static final String ROUTING_KEY_OPERATION_RESULT = "question.operation-result";
 
+    public static final String QUEUE_QUESTION_EVENT = "notification.question.event.queue";
+    public static final String ROUTING_KEY_QUESTION_EVENT = "question.event";
+
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(EXCHANGE_NAME);
@@ -41,6 +44,17 @@ public class RabbitMQConfig {
     @Bean
     public Binding bindingOperationResult(Queue operationResultQueue, DirectExchange exchange) {
         return BindingBuilder.bind(operationResultQueue).to(exchange).with(ROUTING_KEY_OPERATION_RESULT);
+    }
+
+    /** Se declara aquí y en Notification Service (idéntica) para no perder eventos si éste aún no arrancó. */
+    @Bean
+    public Queue questionEventQueue() {
+        return QueueBuilder.durable(QUEUE_QUESTION_EVENT).build();
+    }
+
+    @Bean
+    public Binding bindingQuestionEvent(Queue questionEventQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(questionEventQueue).to(exchange).with(ROUTING_KEY_QUESTION_EVENT);
     }
 
     @Bean

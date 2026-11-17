@@ -42,6 +42,11 @@ public class RestExceptionHandler {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), List.of());
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> onForbiddenException(ForbiddenException ex) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), List.of());
+    }
+
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> onBadRequestException(BadRequestException ex) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), List.of());

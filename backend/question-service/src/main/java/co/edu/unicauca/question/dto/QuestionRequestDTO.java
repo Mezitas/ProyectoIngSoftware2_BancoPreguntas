@@ -1,6 +1,5 @@
 package co.edu.unicauca.question.dto;
 
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -8,7 +7,7 @@ import java.util.List;
  * Validation Service, incluyendo la bibliografía y el nivel de dificultad.
  */
 public record QuestionRequestDTO(
-        @NotNull(message = "authorId es obligatorio") Long authorId,
+        Long authorId,
         String context,
         String statement,
         List<OptionDTO> options,
@@ -19,4 +18,10 @@ public record QuestionRequestDTO(
         String subtopic,
         String bibliography,
         String difficulty) {
+
+    /** Copia de la petición con el autor tomado del JWT. */
+    public QuestionRequestDTO withAuthorId(Long newAuthorId) {
+        return new QuestionRequestDTO(newAuthorId, context, statement, options, correctOption, justification,
+                competency, topic, subtopic, bibliography, difficulty);
+    }
 }

@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/auth/login", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users").hasAnyRole("DOCENTE", "AUTOR", "ADMIN", "REVISOR")
                         .requestMatchers(HttpMethod.GET, "/users/**").authenticated()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter())))

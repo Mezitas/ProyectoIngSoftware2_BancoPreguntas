@@ -15,6 +15,8 @@ public class RabbitMQConfig {
     public static final String ROUTING_KEY_REVIEWER_ASSIGNED = "reviewer.assigned";
     public static final String QUEUE_REVIEW_COMPLETED = "notification.review.completed.queue";
     public static final String ROUTING_KEY_REVIEW_COMPLETED = "review.completed";
+    public static final String QUEUE_QUESTION_EVENT = "notification.question.event.queue";
+    public static final String ROUTING_KEY_QUESTION_EVENT = "question.event";
 
     @Bean
     public DirectExchange exchange() {
@@ -39,6 +41,16 @@ public class RabbitMQConfig {
     @Bean
     public Binding bindingReviewCompleted(Queue reviewCompletedQueue, DirectExchange exchange) {
         return BindingBuilder.bind(reviewCompletedQueue).to(exchange).with(ROUTING_KEY_REVIEW_COMPLETED);
+    }
+
+    @Bean
+    public Queue questionEventQueue() {
+        return QueueBuilder.durable(QUEUE_QUESTION_EVENT).build();
+    }
+
+    @Bean
+    public Binding bindingQuestionEvent(Queue questionEventQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(questionEventQueue).to(exchange).with(ROUTING_KEY_QUESTION_EVENT);
     }
 
     @Bean

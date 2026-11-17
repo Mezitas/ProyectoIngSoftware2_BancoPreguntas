@@ -20,6 +20,18 @@ public class UserClient {
         this.baseUrl = baseUrl;
     }
 
+    /** Perfil local del usuario identificado por el claim preferred_username del JWT. */
+    public Optional<UserInfoDTO> findByUsername(String username) {
+        try {
+            return Optional.ofNullable(rest.getForObject(baseUrl + "/users/by-username/{username}",
+                    UserInfoDTO.class, username));
+        } catch (HttpClientErrorException.NotFound e) {
+            return Optional.empty();
+        } catch (RestClientException e) {
+            throw new ServiceUnavailableException("User Service no está disponible");
+        }
+    }
+
     public Optional<UserInfoDTO> findById(Long id) {
         try {
             return Optional.ofNullable(rest.getForObject(baseUrl + "/users/" + id, UserInfoDTO.class));

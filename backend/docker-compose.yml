@@ -178,6 +178,8 @@ services:
       RABBIT_PASS: ${RABBIT_PASS:-SaberProRabbit123!}
       KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/saberpro
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/saberpro/protocol/openid-connect/certs
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
     volumes:
       - notifications_data:/data
     depends_on:
@@ -185,6 +187,17 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_started
+      mailhog:
+        condition: service_started
+
+  # Servidor SMTP de pruebas: recibe los correos reales de Notification Service.
+  # Bandeja de entrada web: http://localhost:8025
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: saberpro-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
 volumes:
   rabbitmq_data:

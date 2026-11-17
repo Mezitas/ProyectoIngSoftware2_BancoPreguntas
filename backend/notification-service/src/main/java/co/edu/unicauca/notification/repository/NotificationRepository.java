@@ -8,4 +8,6 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
     boolean existsByEventId(String eventId);
 
     List<NotificationEntity> findByRecipientIdOrderByIdAsc(Long recipientId);
+
+    List<NotificationEntity> findByRecipientEmailIgnoreCaseOrderByIdAsc(String recipientEmail);
 }

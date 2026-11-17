@@ -14,13 +14,19 @@ import co.edu.unicauca.question.model.OptionEmbeddable;
 import co.edu.unicauca.question.model.QuestionEntity;
 import co.edu.unicauca.question.repository.OperationRepository;
 import co.edu.unicauca.question.repository.QuestionRepository;
+import co.edu.unicauca.question.repository.QuestionSpecifications;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,6 +40,9 @@ public class QuestionService {
     private static final Logger log = LoggerFactory.getLogger(QuestionService.class);
     private static final String TYPE_SUBMIT = "SubmitQuestionForReview";
     private static final Set<String> AUTHOR_ROLES = Set.of("DOCENTE", "AUTOR");
+    private static final Set<String> VALID_STATUSES =
+            Set.of("DRAFT", "PENDING_REVIEW", "IN_REVIEW", "APPROVED", "REJECTED", "PUBLISHED", "UNAVAILABLE");
+    static final int MAX_PAGE_SIZE = 100;
 
     private final QuestionRepository questions;
     private final OperationRepository operations;
@@ -80,6 +89,47 @@ public class QuestionService {
 
     public List<QuestionResponseDTO> list() {
         return questions.findAll().stream().map(q -> toResponse(q, currentStatus(q))).toList();
+    }
+
+    /** Preguntas creadas por un autor (listado simple, sin paginar). */
+    public List<QuestionResponseDTO> listByAuthor(Long authorId) {
+        return questions.findByAuthorIdOrderByIdDesc(authorId).stream()
+                .map(q -> toResponse(q, currentStatus(q))).toList();
+    }
+
+    /**
+     * Listado paginado con filtros (autor, estado, texto libre, competencia, tema, subtema y dificultad).
+     * Los filtros sobre el contenido y la paginación se resuelven en la base de datos; el estado vive en
+     * Lifecycle Service, así que sin filtro de estado solo se consulta el estado de la página pedida y con
+     * filtro de estado se consulta el de los candidatos y se pagina el resultado.
+     */
+    public PageDTO<QuestionResponseDTO> search(QuestionFilter filter, int page, int size) {
+        int pageNumber = Math.max(page, 0);
+        int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        String status = normalizeStatus(filter.status());
+        String difficulty = filter.difficulty() == null || filter.difficulty().isBlank()
+                ? null : normalizeDifficulty(filter.difficulty());
+        Specification<QuestionEntity> specification = QuestionSpecifications.from(new QuestionFilter(
+                filter.authorId(), null, filter.text(), filter.competency(), filter.topic(), filter.subtopic(),
+                difficulty));
+        Sort sort = Sort.by(Sort.Direction.DESC, "updatedAt").and(Sort.by(Sort.Direction.DESC, "id"));
+
+        if (status == null) {
+            Page<QuestionEntity> result = questions.findAll(specification, PageRequest.of(pageNumber, pageSize, sort));
+            List<QuestionResponseDTO> content = result.getContent().stream()
+                    .map(q -> toResponse(q, currentStatus(q))).toList();
+            return new PageDTO<>(content, pageNumber, pageSize, result.getTotalElements(), result.getTotalPages());
+        }
+
+        List<QuestionResponseDTO> matching = questions.findAll(specification, sort).stream()
+                .map(q -> toResponse(q, currentStatus(q)))
+                .filter(q -> status.equals(q.status()))
+                .toList();
+        int from = (int) Math.min((long) pageNumber * pageSize, matching.size());
+        int to = Math.min(from + pageSize, matching.size());
+        int totalPages = (int) Math.ceil(matching.size() / (double) pageSize);
+        return new PageDTO<>(List.copyOf(matching.subList(from, to)), pageNumber, pageSize, matching.size(),
+                totalPages);
     }
 
     // -------------------------------------------------------------- corregir
@@ -169,6 +219,17 @@ public class QuestionService {
         entity.updateContent(req.context(), req.statement(), options, req.correctOption().trim().toUpperCase(),
                 req.justification(), req.competency(), req.topic(), req.subtopic(), req.bibliography().trim(),
                 normalizeDifficulty(req.difficulty()));
+    }
+
+    private static String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        String normalized = status.trim().toUpperCase(Locale.ROOT);
+        if (!VALID_STATUSES.contains(normalized)) {
+            throw new BadRequestException("Estado inválido: " + status + ". Use uno de " + VALID_STATUSES);
+        }
+        return normalized;
     }
 
     private static String normalizeDifficulty(String difficulty) {

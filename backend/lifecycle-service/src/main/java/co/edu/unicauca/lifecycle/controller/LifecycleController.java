@@ -1,11 +1,13 @@
 package co.edu.unicauca.lifecycle.controller;
 
 import co.edu.unicauca.lifecycle.dto.*;
+import co.edu.unicauca.lifecycle.security.TransitionPolicy;
 import co.edu.unicauca.lifecycle.service.LifecycleService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,8 +39,18 @@ public class LifecycleController {
     /** Transición síncrona solicitada por otro servicio (p. ej. Review Service: PENDING_REVIEW -> IN_REVIEW). */
     @PostMapping("/{questionId}/transition")
     public TransitionResultDTO transition(@PathVariable Long questionId,
-                                          @Valid @RequestBody TransitionRequestDTO request) {
+                                          @Valid @RequestBody TransitionRequestDTO request,
+                                          Authentication authentication) {
+        TransitionPolicy.check(String.valueOf(request.targetState()), rolesOf(authentication));
         return service.transition(questionId, request.targetState(), request.requestedBy(), request.comment(), null);
+    }
+
+    private static List<String> rolesOf(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .filter(authority -> authority.startsWith("ROLE_"))
+                .map(authority -> authority.substring("ROLE_".length()))
+                .toList();
     }
 
     /** Resultado de una operación asíncrona (comando procesado desde RabbitMQ). */

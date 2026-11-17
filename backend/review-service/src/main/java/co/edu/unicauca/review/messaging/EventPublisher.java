@@ -18,6 +18,11 @@ public class EventPublisher {
                 RabbitMQConfig.ROUTING_KEY_REVIEWER_ASSIGNED, event);
     }
 
+    public void publishQuestionEvent(QuestionNotificationEvent event) {
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME,
+                RabbitMQConfig.ROUTING_KEY_QUESTION_EVENT, event);
+    }
+
     public void publishReviewCompleted(ReviewCompletedEvent event) {
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME,
                 RabbitMQConfig.ROUTING_KEY_REVIEW_COMPLETED, event);

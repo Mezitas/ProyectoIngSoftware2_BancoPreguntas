@@ -3,27 +3,45 @@ package co.edu.unicauca.notification.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-/** Simula el envío (diferido) de un correo. El retardo demuestra que NO bloquea la asignación. */
+/**
+ * Envía correos reales por SMTP (en Docker Compose, MailHog: bandeja en http://localhost:8025).
+ * Si el envío falla lanza una excepción y NotificationService marca la notificación como FAILED.
+ */
 @Service
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    private final long delayMs;
+    private final JavaMailSender mailSender;
+    private final boolean enabled;
+    private final String from;
 
-    public EmailService(@Value("${notification.email.delay-ms:2000}") long delayMs) {
-        this.delayMs = delayMs;
+    public EmailService(JavaMailSender mailSender,
+                        @Value("${notification.email.enabled:true}") boolean enabled,
+                        @Value("${notification.email.from:no-reply@saberpro.unicauca.edu.co}") String from) {
+        this.mailSender = mailSender;
+        this.enabled = enabled;
+        this.from = from;
     }
 
     public void send(String to, String subject, String body) {
-        try {
-            Thread.sleep(delayMs);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Envío interrumpido", e);
+        if (to == null || to.isBlank()) {
+            throw new IllegalArgumentException("El destinatario no tiene correo electrónico");
         }
-        log.info("[EmailService] Correo enviado a {} | asunto: {} | {}", to, subject, body);
+        if (!enabled) {
+            log.info("[EmailService] Envío deshabilitado; correo no enviado a {} | asunto: {}", to, subject);
+            return;
+        }
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(body);
+        mailSender.send(message);
+        log.info("[EmailService] Correo enviado a {} | asunto: {}", to, subject);
     }
 }

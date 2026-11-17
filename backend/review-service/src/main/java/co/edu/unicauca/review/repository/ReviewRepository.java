@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
     boolean existsByQuestionIdAndResult(Long questionId, ReviewResult result);
+    boolean existsByQuestionIdAndResultAndClosedFalse(Long questionId, ReviewResult result);
+    List<ReviewEntity> findByQuestionIdAndClosedFalse(Long questionId);
+    java.util.Optional<ReviewEntity> findFirstByQuestionIdAndResultAndClosedFalseOrderByIdAsc(Long questionId, ReviewResult result);
     boolean existsByAssignmentId(Long assignmentId);
     List<ReviewEntity> findByQuestionIdOrderByIdAsc(Long questionId);
     java.util.Optional<ReviewEntity> findFirstByQuestionIdAndResultOrderByIdAsc(Long questionId, ReviewResult result);

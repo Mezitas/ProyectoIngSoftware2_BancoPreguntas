@@ -46,6 +46,7 @@ Los datos de H2, RabbitMQ y Keycloak viven en volúmenes con nombre. `docker com
 | Lifecycle Service | 8084 | Autoridad de estados, transiciones e historial | `http://localhost:8084/swagger-ui/index.html` |
 | Review Service | 8085 | Asignación de revisores y resultados | `http://localhost:8085/swagger-ui/index.html` |
 | Notification Service | 8086 | Consulta y registro de notificaciones | `http://localhost:8086/swagger-ui/index.html` |
+| MailHog (SMTP de pruebas) | 1025 / 8025 | Recibe los correos que envía Notification Service | `http://localhost:8025` (bandeja de entrada) |
 
 Cada API publica OpenAPI en `http://localhost:<puerto>/v3/api-docs`. Swagger UI y OpenAPI son públicos para consulta; las operaciones de negocio requieren un JWT. Pulsa **Authorize** en Swagger UI y proporciona `Bearer <access_token>`.
 
@@ -117,13 +118,21 @@ Importa `postman/SaberPro_Microservices.postman_collection.json` y `postman/Sabe
 
 `POST /reviews/assign` permite de uno a tres revisores distintos, rechaza al autor como revisor y evita asignaciones duplicadas o una cuarta asignación activa. `GET /reviews/reviewer/{reviewerId}` lista asignaciones; `GET /reviews/question/{questionId}/results` expone resultados y comentarios. Los listados, filtros, estados coloreados y paginación del escritorio completan la interfaz de la entrega.
 
+### Listado paginado, identidad por JWT y notificaciones
+
+- **Identidad:** el autor, el administrador que asigna y el revisor que evalúa salen del claim `preferred_username` del JWT (resuelto contra User Service con `GET /users/by-username/{username}`). Los campos `authorId`, `assignedBy`, `reviewerId` y `requestedBy` del cuerpo ya son opcionales; si se envían y no coinciden con el usuario autenticado, la respuesta es `403`.
+- **Listado de preguntas (RF3):** `GET /questions/search` devuelve una página `{content, page, size, totalElements, totalPages}` con filtros `status`, `q` (texto libre), `competency`, `topic`, `subtopic`, `difficulty` (`BASIC`, `MEDIUM`, `HIGH`), `authorId`, `page` (desde 0) y `size` (máximo 100). Un autor solo ve sus propias preguntas; ADMIN y REVISOR ven todas. `GET /questions` mantiene el listado completo con la misma regla de visibilidad.
+- **Historial de revisiones (RF6):** `GET /reviews/question/{id}/results` lo pueden consultar el autor, los revisores asignados y los administradores. Cada ronda de revisión se cierra al decidirse; si el autor corrige y reenvía una pregunta rechazada, la nueva ronda no hereda los rechazos anteriores y el historial conserva todas las evaluaciones.
+- **Autorización de transiciones:** Lifecycle Service valida por rol el estado destino (`IN_REVIEW` y `PUBLISHED`: ADMIN; `APPROVED` y `REJECTED`: REVISOR o ADMIN; `DRAFT` y `PENDING_REVIEW`: DOCENTE o AUTOR).
+- **Notificaciones por correo (RF2, RF4, RF5, RF6):** Notification Service envía correos reales por SMTP (MailHog en Compose, bandeja en `http://localhost:8025`) cuando el autor envía o reenvía una pregunta (a los administradores), cuando se asigna un revisor, cuando un revisor deja su evaluación (al autor y al administrador) y cuando la revisión termina (a todos los implicados). `GET /notifications` solo devuelve al usuario sus propias notificaciones; el administrador puede consultar las de cualquiera.
+
 ## Historias de usuario y criterios de aceptación
 
 | Historia | Criterios de aceptación implementados |
 |---|---|
 | Como autor quiero crear preguntas de selección múltiple con única respuesta para alimentar Saber Pro. | Captura contexto, enunciado, cuatro opciones, clave, justificación, bibliografía, competencia, tema, subtema y dificultad. Validation Service comprueba la estructura antes de guardar; devuelve error si no cumple. |
 | Como autor quiero enviar un borrador a revisión. | Una pregunta en `DRAFT` puede enviarse; el cambio a `PENDING_REVIEW` es validado por Lifecycle y se muestra con color en el cliente. |
-| Como autor quiero consultar mis preguntas para verlas o editarlas. | El cliente ofrece búsqueda, filtros y paginación sobre el listado, y muestra el estado que informa Lifecycle. La corrección respeta los estados definidos por el ciclo de vida. |
+| Como autor quiero consultar mis preguntas para verlas o editarlas. | El backend ofrece `GET /questions/search` con paginación y filtros (solo las preguntas del autor), y el cliente de escritorio muestra el estado que informa Lifecycle. La corrección respeta los estados definidos por el ciclo de vida. |
 | Como administrador quiero asignar revisores. | Se pueden asignar de uno a tres revisores distintos a una pregunta pendiente; no se permite el autor, duplicados ni una cuarta asignación. La asignación produce un evento para Notification Service. |
 | Como revisor quiero consultar y evaluar preguntas asignadas. | El revisor consulta sus asignaciones y registra `APPROVED` o `REJECTED` con observaciones; el rechazo exige motivo. Los resultados se notifican a los implicados. |
 | Como autor quiero consultar revisiones y observaciones para mejorar una pregunta. | El historial del ciclo de vida y los resultados de revisión se consultan por pregunta. El autor corrige y reenvía; las notificaciones se procesan por eventos. |
@@ -292,7 +301,7 @@ Set-Location .\question-service
 mvn spring-boot:run
 ```
 
-Los valores de configuración se pueden sobrescribir con variables de entorno: `SERVER_PORT`, `DB_URL`, `RABBIT_HOST`, `RABBIT_PORT`, `RABBIT_USER`, `RABBIT_PASS`, `KEYCLOAK_ISSUER_URI`, `KEYCLOAK_JWK_SET_URI`, `KEYCLOAK_TOKEN_URL`, `KEYCLOAK_CLIENT_ID`, `USER_SERVICE_URL`, `VALIDATION_SERVICE_URL`, `LIFECYCLE_SERVICE_URL` y `EMAIL_DELAY_MS`. En Compose, los nombres de host de servicios (`keycloak`, `rabbitmq`, etc.) solo son resolubles dentro de la red de contenedores; las ejecuciones locales usan `localhost`.
+Los valores de configuración se pueden sobrescribir con variables de entorno: `SERVER_PORT`, `DB_URL`, `RABBIT_HOST`, `RABBIT_PORT`, `RABBIT_USER`, `RABBIT_PASS`, `KEYCLOAK_ISSUER_URI`, `KEYCLOAK_JWK_SET_URI`, `KEYCLOAK_TOKEN_URL`, `KEYCLOAK_CLIENT_ID`, `USER_SERVICE_URL`, `VALIDATION_SERVICE_URL`, `LIFECYCLE_SERVICE_URL`, `MAIL_HOST`, `MAIL_PORT`, `EMAIL_ENABLED` y `EMAIL_FROM`. En Compose, los nombres de host de servicios (`keycloak`, `rabbitmq`, etc.) solo son resolubles dentro de la red de contenedores; las ejecuciones locales usan `localhost`.
 
 ## Evidencia del documento final de arquitectura
 

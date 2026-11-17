@@ -26,6 +26,13 @@ public class NotificationListener {
         service.handleReviewerAssigned(event);
     }
 
+    @RabbitListener(queues = RabbitMQConfig.QUEUE_QUESTION_EVENT)
+    public void onQuestionEvent(QuestionNotificationEvent event) {
+        log.info("[NotificationService] Evento {} recibido: pregunta={} destinatario={}",
+                event.type(), event.questionId(), event.recipientId());
+        service.handleQuestionEvent(event);
+    }
+
     @RabbitListener(queues = RabbitMQConfig.QUEUE_REVIEW_COMPLETED)
     public void onReviewCompleted(ReviewCompletedEvent event) {
         log.info("[NotificationService] Resultado de revisión recibido: pregunta={} destinatario={}",

@@ -24,6 +24,13 @@ spring:
           enabled: true
           max-attempts: 3
           initial-interval: 1000ms
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    properties:
+      mail.smtp.connectiontimeout: 3000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
   security:
     oauth2:
       resourceserver:
@@ -33,4 +40,5 @@ spring:
 
 notification:
   email:
-    delay-ms: ${EMAIL_DELAY_MS:2000}
+    enabled: ${EMAIL_ENABLED:true}
+    from: ${EMAIL_FROM:no-reply@saberpro.unicauca.edu.co}

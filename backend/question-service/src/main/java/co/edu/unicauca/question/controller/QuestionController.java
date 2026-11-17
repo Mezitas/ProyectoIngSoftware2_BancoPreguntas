@@ -1,6 +1,8 @@
 package co.edu.unicauca.question.controller;
 
+import co.edu.unicauca.question.dto.PageDTO;
 import co.edu.unicauca.question.dto.PresentationDTO;
+import co.edu.unicauca.question.dto.QuestionFilter;
 import co.edu.unicauca.question.dto.QuestionRequestDTO;
 import co.edu.unicauca.question.dto.QuestionResponseDTO;
 import co.edu.unicauca.question.dto.SubmitAcceptedDTO;
@@ -27,8 +29,29 @@ public class QuestionController {
         return ResponseEntity.created(URI.create("/questions/" + created.id())).body(created);
     }
 
+    /** Listado completo (sin paginar). Autores: solo sus preguntas; ADMIN y REVISOR: todas. */
     @GetMapping
     public List<QuestionResponseDTO> list() { return facade.listQuestions(); }
+
+    /**
+     * Listado paginado con filtros: {@code page} (desde 0), {@code size} (máx. 100), {@code status},
+     * {@code q} (texto libre), {@code competency}, {@code topic}, {@code subtopic}, {@code difficulty}
+     * (BASIC, MEDIUM, HIGH) y {@code authorId} (solo ADMIN/REVISOR; un autor siempre ve las suyas).
+     */
+    @GetMapping("/search")
+    public PageDTO<QuestionResponseDTO> search(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status,
+            @RequestParam(name = "q", required = false) String text,
+            @RequestParam(required = false) String competency,
+            @RequestParam(required = false) String topic,
+            @RequestParam(required = false) String subtopic,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) Long authorId) {
+        return facade.searchQuestions(
+                new QuestionFilter(authorId, status, text, competency, topic, subtopic, difficulty), page, size);
+    }
 
     @GetMapping("/{id}")
     public QuestionResponseDTO get(@PathVariable Long id) { return facade.findQuestion(id); }
@@ -46,7 +69,7 @@ public class QuestionController {
 
     /** Patrón Adapter + Facade: importa los reactivos de la plataforma externa. */
     @PostMapping("/import")
-    public QuestionBankFacade.ImportReport importExternal(@RequestParam Long authorId) {
+    public QuestionBankFacade.ImportReport importExternal(@RequestParam(required = false) Long authorId) {
         return facade.importExternalQuestions(authorId);
     }
 

@@ -97,7 +97,7 @@ class ReviewServiceTest {
                 55L, 201L, AssignmentStatus.CONFIRMED)).thenReturn(Optional.of(assignment));
         when(assignments.countByQuestionIdAndStatus(55L, AssignmentStatus.CONFIRMED)).thenReturn(1L);
         when(reviews.existsByAssignmentId(assignment.getId())).thenReturn(false);
-        when(reviews.existsByQuestionIdAndResult(55L, ReviewResult.REJECTED)).thenReturn(false);
+        when(reviews.existsByQuestionIdAndResultAndClosedFalse(55L, ReviewResult.REJECTED)).thenReturn(false);
         when(reviews.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(lifecycleClient.getState(55L))
                 .thenReturn(Optional.of(new LifecycleStateDTO(55L, "APPROVED", 7L)));

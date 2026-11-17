@@ -5,11 +5,13 @@ import co.edu.unicauca.review.client.UserClient;
 import co.edu.unicauca.review.dto.*;
 import co.edu.unicauca.review.exception.*;
 import co.edu.unicauca.review.messaging.EventPublisher;
+import co.edu.unicauca.review.messaging.QuestionNotificationEvent;
 import co.edu.unicauca.review.messaging.ReviewCompletedEvent;
 import co.edu.unicauca.review.messaging.ReviewerAssignedEvent;
 import co.edu.unicauca.review.model.*;
 import co.edu.unicauca.review.repository.ReviewAssignmentRepository;
 import co.edu.unicauca.review.repository.ReviewRepository;
+import co.edu.unicauca.review.security.AuthenticatedUser;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -133,11 +135,12 @@ public class ReviewService {
         String target = "IN_REVIEW";
         String decisionComments = req.comments();
         if (lastReviewer) {
+            // Solo cuentan las evaluaciones de la ronda actual: las de rondas anteriores ya están cerradas.
             boolean rejectionExists = req.result() == ReviewResult.REJECTED
-                    || reviews.existsByQuestionIdAndResult(req.questionId(), ReviewResult.REJECTED);
+                    || reviews.existsByQuestionIdAndResultAndClosedFalse(req.questionId(), ReviewResult.REJECTED);
             target = rejectionExists ? "REJECTED" : "APPROVED";
             if (rejectionExists && req.result() != ReviewResult.REJECTED) {
-                decisionComments = reviews.findFirstByQuestionIdAndResultOrderByIdAsc(
+                decisionComments = reviews.findFirstByQuestionIdAndResultAndClosedFalseOrderByIdAsc(
                                 req.questionId(), ReviewResult.REJECTED)
                         .map(ReviewEntity::getComments)
                         .orElse("Pregunta rechazada en la evaluación por pares");
@@ -150,13 +153,37 @@ public class ReviewService {
         assignment.changeStatus(AssignmentStatus.COMPLETED, null);
         assignments.save(assignment);
         if (lastReviewer) {
+            closeRound(req.questionId());
             notifyParticipants(req.questionId(), assignment, target, decisionComments);
+        } else {
+            notifyReviewSubmitted(req.questionId(), assignment, req.reviewerId(), req.result(), req.comments());
         }
         return new ReviewDTO(review.getId(), assignment.getId(), review.getQuestionId(), review.getReviewerId(),
                 review.getResult(), review.getComments(), target, review.getCreatedAt());
     }
 
     // ------------------------------------------------------------ consultas
+    /**
+     * Las asignaciones y evaluaciones de una pregunta solo las ve un administrador, un revisor asignado a ella
+     * o su autor (que necesita leer las observaciones para corregirla).
+     */
+    public void assertCanView(Long questionId, AuthenticatedUser user) {
+        if (user.hasRole("ADMIN")) {
+            return;
+        }
+        boolean assignedReviewer = assignments.findByQuestionIdOrderByIdAsc(questionId).stream()
+                .anyMatch(a -> user.id().equals(a.getReviewerId()));
+        if (assignedReviewer) {
+            return;
+        }
+        LifecycleStateDTO state = lifecycleClient.getState(questionId)
+                .orElseThrow(() -> new NotFoundException("La pregunta " + questionId + " no existe"));
+        if (!user.id().equals(state.createdBy())) {
+            throw new ForbiddenException("Solo el autor, un revisor asignado o un administrador pueden consultar "
+                    + "las revisiones de la pregunta " + questionId);
+        }
+    }
+
     public List<AssignmentDTO> findByQuestion(Long questionId) {
         return assignments.findByQuestionIdOrderByIdAsc(questionId).stream().map(a -> toDto(a, null)).toList();
     }
@@ -177,6 +204,36 @@ public class ReviewService {
     public AssignmentDTO findAssignment(Long id) {
         return assignments.findById(id).map(a -> toDto(a, null))
                 .orElseThrow(() -> new NotFoundException("No existe la asignación " + id));
+    }
+
+    /** Cierra la ronda: sus evaluaciones pasan a ser historial y no afectan al siguiente reenvío. */
+    private void closeRound(Long questionId) {
+        List<ReviewEntity> round = reviews.findByQuestionIdAndClosedFalse(questionId);
+        round.forEach(ReviewEntity::close);
+        reviews.saveAll(round);
+    }
+
+    /** Avisa al autor y al administrador que asignó que un revisor ya dejó su evaluación (ronda aún abierta). */
+    private void notifyReviewSubmitted(Long questionId, ReviewAssignmentEntity assignment, Long reviewerId,
+                                       ReviewResult result, String comments) {
+        try {
+            java.util.Set<Long> recipientIds = new java.util.LinkedHashSet<>();
+            lifecycleClient.getState(questionId).ifPresent(state -> recipientIds.add(state.createdBy()));
+            recipientIds.add(assignment.getAssignedBy());
+            recipientIds.remove(null);
+            String reviewerName = userClient.findById(reviewerId).map(UserInfoDTO::fullName)
+                    .orElse("Revisor " + reviewerId);
+            String detail = (result == ReviewResult.APPROVED ? "aprobó" : "rechazó")
+                    + (comments == null || comments.isBlank() ? "" : ". Observaciones: " + comments);
+            for (Long recipientId : recipientIds) {
+                userClient.findById(recipientId).ifPresent(user -> publisher.publishQuestionEvent(
+                        new QuestionNotificationEvent(UUID.randomUUID().toString(), "REVIEW_SUBMITTED", questionId,
+                                user.id(), user.fullName(), user.email(), reviewerName, detail, Instant.now())));
+            }
+        } catch (RuntimeException e) {
+            log.error("No se pudo notificar la evaluación del revisor {} sobre la pregunta {}", reviewerId,
+                    questionId, e);
+        }
     }
 
     private static boolean hasRole(UserInfoDTO user, String role) {

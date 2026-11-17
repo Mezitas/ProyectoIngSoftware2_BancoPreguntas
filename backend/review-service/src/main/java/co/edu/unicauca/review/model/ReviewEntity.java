@@ -30,6 +30,13 @@ public class ReviewEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
+    /**
+     * true cuando la decisión final de la ronda ya se tomó (aprobada/rechazada). Las revisiones cerradas quedan
+     * como historial y no cuentan en la ronda siguiente, que empieza cuando el autor reenvía la pregunta corregida.
+     */
+    @Column(name = "round_closed", nullable = false, columnDefinition = "boolean default false")
+    private boolean closed = false;
+
     protected ReviewEntity() {
     }
 
@@ -41,6 +48,11 @@ public class ReviewEntity {
         this.comments = comments;
     }
 
+    public void close() {
+        this.closed = true;
+    }
+
+    public boolean isClosed() { return closed; }
     public Long getId() { return id; }
     public Long getAssignmentId() { return assignmentId; }
     public Long getQuestionId() { return questionId; }

@@ -32,9 +32,15 @@ public class RestExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "La petición contiene datos inválidos", errors);
     }
 
-    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
+    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class,
+            org.springframework.web.bind.MissingServletRequestParameterException.class})
     public ResponseEntity<ErrorResponse> onMalformed(Exception ex) {
         return build(HttpStatus.BAD_REQUEST, "Petición mal formada (JSON o parámetro inválido)", List.of());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> onForbiddenException(ForbiddenException ex) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), List.of());
     }
 
     @ExceptionHandler(NotFoundException.class)
